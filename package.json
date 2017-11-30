@@ -1,0 +1,64 @@
+{
+  "name": "snapdragon-lexer",
+  "description": "Lexer used by snapdragon. Published as a separate library to allow the lexer to be customized before passing an instance to the parser.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/jonschlinkert/snapdragon-lexer",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "repository": "jonschlinkert/snapdragon-lexer",
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/snapdragon-lexer/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=4"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "@sellside/emitter": "file:/usr/local/lib/node_modules/@sellside/emitter",
+    "define-property": "^1.0.0",
+    "handlebars": "^4.0.11",
+    "js-yaml": "^3.10.0",
+    "kind-of": "^6.0.1",
+    "snapdragon-position": "file:/usr/local/lib/node_modules/snapdragon-position",
+    "snapdragon-token": "file:/usr/local/lib/node_modules/snapdragon-token",
+    "union-value": "^1.0.0",
+    "use": "^3.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^4.0.1",
+    "prettier-inspect": "file:/usr/local/lib/node_modules/prettier-inspect",
+    "snapdragon-node": "file:/usr/local/lib/node_modules/snapdragon-node",
+    "snapdragon-visit": "^1.0.0",
+    "gulp-format-md": "^1.0.0"
+  },
+  "keywords": [
+    "compile",
+    "compiler",
+    "convert",
+    "lexer",
+    "parse",
+    "parser",
+    "render",
+    "snapdragon",
+    "transform"
+  ],
+  "verb": {
+    "toc": false,
+    "layout": "default",
+    "tasks": [
+      "readme"
+    ],
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "lint": {
+      "reflinks": true
+    }
+  }
+}
