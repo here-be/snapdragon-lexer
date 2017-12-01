@@ -1,7 +1,13 @@
 sudo: false
+os:
+  - linux
+  - osx
 language: node_js
 node_js:
-  - 'node'
+  - node
+  - '9'
+  - '8'
+  - '7'
   - '6'
   - '5'
   - '4'
