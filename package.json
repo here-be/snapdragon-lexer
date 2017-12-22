@@ -2,11 +2,11 @@
   "name": "snapdragon-lexer",
   "description": "Converts a string into an array of tokens, with useful methods for looking ahead and behind, capturing, matching, et cetera.",
   "version": "1.0.0",
-  "homepage": "https://github.com/here-be-snapdragons/snapdragon-lexer",
+  "homepage": "https://github.com/here-be/snapdragon-lexer",
   "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
-  "repository": "here-be-snapdragons/snapdragon-lexer",
+  "repository": "here-be/snapdragon-lexer",
   "bugs": {
-    "url": "https://github.com/here-be-snapdragons/snapdragon-lexer/issues"
+    "url": "https://github.com/here-be/snapdragon-lexer/issues"
   },
   "license": "MIT",
   "files": [
@@ -14,22 +14,21 @@
   ],
   "main": "index.js",
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "scripts": {
     "test": "mocha"
   },
   "dependencies": {
-    "@sellside/emitter": "^1.0.5",
-    "snapdragon-token": "^2.0.0",
-    "union-value": "^1.0.0",
-    "use": "^3.0.0"
+    "snapdragon-handlers": "^1.0.0",
+    "snapdragon-stack": "^1.0.1",
+    "snapdragon-token": "^3.0.1"
   },
   "devDependencies": {
-    "snapdragon-position": "^1.0.0",
-    "mocha": "^4.0.1",
     "define-property": "^2.0.0",
-    "gulp-format-md": "^1.0.0"
+    "gulp-format-md": "^1.0.0",
+    "mocha": "^4.0.1",
+    "snapdragon-position": "^2.0.2"
   },
   "keywords": [
     "compile",
@@ -40,6 +39,8 @@
     "parser",
     "render",
     "snapdragon",
+    "token",
+    "tokenizer",
     "transform"
   ],
   "verb": {

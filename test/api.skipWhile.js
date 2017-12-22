@@ -5,7 +5,7 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.skipType', function() {
+describe('api.skipWhile', function() {
   beforeEach(function() {
     lexer = new Lexer('//foo/bar.com')
       .capture('dot', /^\./)
@@ -14,13 +14,15 @@ describe('api.skipType', function() {
       .capture('text', /^\w+/);
   });
 
-  it('should skip the specified types', function() {
-    lexer.skipType(['slash', 'text']);
+  it('should skip while token.type does not match', function() {
+    lexer.skipWhile(tok => tok.type !== 'dot');
     assert.equal(lexer.peek().type, 'dot');
+    assert.equal(lexer.peek().value, '.');
   });
 
-  it('should skip the specified type', function() {
-    lexer.skipType('slash');
+  it('should skip while lexer.string does not match', function() {
+    lexer.skipWhile(tok => lexer.string[0] !== '.');
     assert.equal(lexer.peek().type, 'text');
+    assert.equal(lexer.peek().value, 'bar');
   });
 });

@@ -30,7 +30,7 @@ describe('api.capture', function() {
     var count = 0;
     lexer.capture('dot', /^\./, function(tok) {
       assert.equal(tok.type, 'dot');
-      assert.equal(tok.val, '.');
+      assert.equal(tok.value, '.');
       count++;
       return tok;
     });

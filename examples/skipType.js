@@ -1,9 +1,13 @@
-const Lexer = require('..');
-const lexer = new Lexer('foo/*');
+/**
+ * Example of using the .skipType method
+ */
 
-lexer.capture('slash', /^\//);
-lexer.capture('text', /^\w+/);
-lexer.capture('star', /^\*/);
+const Tokenizer = require('..');
+const tokenizer = new Tokenizer('foo/*');
 
-lexer.skipType(['slash', 'text']);
-console.log(lexer);
+tokenizer.capture('slash', /^\//);
+tokenizer.capture('text', /^\w+/);
+tokenizer.capture('star', /^\*/);
+
+tokenizer.skipType(['slash', 'text']);
+console.log(tokenizer);

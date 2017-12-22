@@ -17,9 +17,9 @@ describe('api.current', function() {
 
   it('should get the previous token', function() {
     lexer.tokenize('//foo/bar.com');
-    var text = lexer.current();
+    var text = lexer.current;
     assert(text);
     assert.equal(text.type, 'text');
-    assert.equal(text.val, 'com');
+    assert.equal(text.value, 'com');
   });
 });

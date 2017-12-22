@@ -19,7 +19,7 @@ describe('api.peek', function() {
     var tok = lexer.peek();
     assert(tok);
     assert.equal(tok.type, 'slash');
-    assert.equal(tok.val, '/');
+    assert.equal(tok.value, '/');
   });
 
   it('should consume the captured substring', function() {

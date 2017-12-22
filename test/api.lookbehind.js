@@ -26,11 +26,11 @@ describe('api.lookbehind', function() {
     var text = lexer.lookbehind(1);
     assert(text);
     assert.equal(text.type, 'text');
-    assert.equal(text.val, 'com');
+    assert.equal(text.value, 'com');
 
     var dot = lexer.lookbehind(2);
     assert(dot);
     assert.equal(dot.type, 'dot');
-    assert.equal(dot.val, '.');
+    assert.equal(dot.value, '.');
   });
 });

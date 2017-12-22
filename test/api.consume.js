@@ -7,15 +7,15 @@ let lexer;
 
 describe('api.consume', function() {
   beforeEach(function() {
-    lexer = new Lexer('abcdef');
+    lexer = new Lexer('abcdefghi');
   });
 
-  it('should throw an error when value is not a string', function() {
-    assert.throws(() => lexer.consume(3));
-  });
-
-  it('should update remove the given chars from lexer.string', function() {
-    lexer.consume('abc');
-    assert.equal(lexer.string, 'def');
+  it('should remove the given length from lexer.string', function() {
+    lexer.consume(1);
+    assert.equal(lexer.string, 'bcdefghi');
+    lexer.consume(3);
+    assert.equal(lexer.string, 'efghi');
+    lexer.consume(3);
+    assert.equal(lexer.string, 'hi');
   });
 });

@@ -4,11 +4,11 @@
  * Module dependencies
  */
 
+const fs = require('fs');
 const assert = require('assert');
-const Token = require('snapdragon-token');
-const Emitter = require('@sellside/emitter');
-const union = require('union-value');
-const use = require('use');
+const Handlers = require('snapdragon-handlers');
+const Stack = require('snapdragon-stack');
+let Token = require('snapdragon-token');
 
 /**
  * Create a new `Lexer` with the given `options`.
@@ -23,21 +23,17 @@ const use = require('use');
  * @api public
  */
 
-class Lexer extends Emitter {
+class Lexer extends Handlers {
   constructor(input, options) {
-    super();
-
     if (typeof input !== 'string') {
       return new Lexer('', input);
     }
-
-    Reflect.defineProperty(this, 'isLexer', { value: true });
-    this.options = Object.assign({type: 'root', Token}, options);
-    this.Token = this.options.Token;
-    this.handlers = {};
-    this.types = [];
+    super(options);
+    if (Lexer.isLexer(options)) {
+      return this.create(options.options, options);
+    }
+    this.isLexer = true;
     this.init(input);
-    use(this);
   }
 
   /**
@@ -45,32 +41,41 @@ class Lexer extends Emitter {
    */
 
   init(input) {
-    if (input) this.input = this.string = input;
-    this.loc = { index: 0, column: 1, line: 1 };
+    if (input) this.input = this.string = input.toString();
+    if (!input && isString(this.options.source)) {
+      return this.init(fs.readFileSync(this.options.source));
+    }
     this.consumed = '';
-    this.tokens = [];
+    this.tokens = new this.Stack();
+    this.stash = new this.Stack('');
+    this.stack = new this.Stack();
     this.queue = [];
+    this.loc = {
+      index: 0,
+      column: 0,
+      line: 1
+    };
   }
 
   /**
-   * Create a new [Token][snapdragon-token] with the given `type` and `val`.
+   * Create a new [Token][snapdragon-token] with the given `type` and `value`.
    *
    * ```js
-   * console.log(lexer.token({type: 'star', val: '*'}));
+   * console.log(lexer.token({type: 'star', value: '*'}));
    * console.log(lexer.token('star', '*'));
    * console.log(lexer.token('star'));
    * ```
    * @name .token
    * @emits token
    * @param {String|Object} `type` (required) The type of token to create
-   * @param {String} `val` (optional) The captured string
+   * @param {String} `value` (optional) The captured string
    * @param {Array} `match` (optional) Match arguments returned from `String.match` or `RegExp.exec`
    * @return {Object} Returns an instance of [snapdragon-token][]
    * @api public
    */
 
-  token(type, val, match) {
-    const token = new this.Token(type, val, match);
+  token(type, value, match) {
+    const token = new this.Token(type, value, match);
     this.emit('token', token);
     return token;
   }
@@ -81,7 +86,7 @@ class Lexer extends Emitter {
    * ```js
    * const Token = require('snapdragon-token');
    * lexer.isToken({}); // false
-   * lexer.isToken(new Token({type: 'star', val: '*'})); // true
+   * lexer.isToken(new Token({type: 'star', value: '*'})); // true
    * ```
    * @name .isToken
    * @param {Object} `token`
@@ -94,91 +99,39 @@ class Lexer extends Emitter {
   }
 
   /**
-   * Register a lexer handler function for creating tokens by
-   * matching substrings of the given `type.`
+   * Consume the given length from `lexer.string`. The consumed value is used
+   * to update `lexer.consumed`, as well as the current position.
    *
    * ```js
-   * lexer.set('star', function() {
-   *   const match = this.match(regex, type);
-   *   if (match) {
-   *     return this.token({val: match[0]}, match);
-   *   }
-   * });
-   * ```
-   * @name .set
-   * @param {String} `type`
-   * @param {Function} `fn` The handler function to register.
-   * @api public
-   */
-
-  set(type, handler) {
-    // preserve order of registered handlers
-    union(this, 'types', type);
-
-    // late binding (doesn't work with fat arrows)
-    const lexer = this;
-    this.handlers[type] = function() {
-      return handler.call(lexer);
-    };
-    return this;
-  }
-
-  /**
-   * Get the registered lexer handler function of the given `type`.
-   * If a handler is not found, an error is thrown.
-   *
-   * ```js
-   * const handler = lexer.get('text');
-   * ```
-   * @name .get
-   * @param {String} `type`
-   * @param {Function} `fn` The handler function to register.
-   * @api public
-   */
-
-  get(type) {
-    const handler = this.handlers[type];
-    assert.equal(typeof handler, 'function', 'expected a function');
-    return handler;
-  }
-
-  /**
-   * Removes the given `string` from the beginning of `lexer.string` and
-   * adds it to the end of `lexer.consumed`, then updates `lexer.line`
-   * and `lexer.column` with the current cursor position.
-   *
-   * ```js
-   * lexer.consume('*');
+   * lexer.consume(1);
+   * lexer.consume(1, '*');
    * ```
    * @name .consume
-   * @param {String} `string`
-   * @return {Object} Returns the instance for chaining.
+   * @param {Number} `len`
+   * @param {String} `value` Optionally pass the value being consumed.
+   * @return {String} Returns the consumed value
    * @api public
    */
 
-  consume(val, len = val.length) {
-    assert(typeof val === 'string', 'expected a string');
-    this.updateLocation(val, len);
+  consume(len, value) {
+    if (!value) value = this.string.slice(0, len);
+    this.consumed += value;
     this.string = this.string.slice(len);
-    this.consumed += val;
-    return this;
+    this.updateLocation(value, len);
+    return value;
   }
 
   /**
-   * Update column and line number based on `val`.
-   * @param {String} `val`
+   * Update column and line number based on `value`.
+   * @param {String} `value`
    * @return {Object} returns the instance for chaining.
    */
 
-  updateLocation(val, len = val.length) {
-    assert(typeof val === 'string', 'expected a string');
-    const lines = val.match(/\n/g);
-    if (lines) this.loc.line += lines.length;
-
-    const index = val.lastIndexOf('\n');
-    this.loc.column = ~index ? len - index : this.loc.column + len;
+  updateLocation(value, len) {
+    const i = value.lastIndexOf('\n');
+    this.loc.column = ~i ? len - i : this.loc.column + len;
+    this.loc.line += Math.max(0, value.split('\n').length - 1);
     this.loc.index += len;
-    return this;
   }
 
   /**
@@ -206,13 +159,15 @@ class Lexer extends Emitter {
       regex.validated = true;
     }
 
+    const consumed = this.consumed;
     const match = regex.exec(this.string);
     if (!match) return;
     if (match[0] === '') {
       throw new SyntaxError('regex should not match an empty string');
     }
 
-    this.consume(match[0]);
+    match.consumed = consumed;
+    this.consume(match[0].length, match[0]);
     return match;
   }
 
@@ -226,11 +181,11 @@ class Lexer extends Emitter {
    * ```js
    * lexer.string = '/foo/';
    * console.log(lexer.scan(/^\//, 'slash'));
-   * //=> Token { type: 'slash', val: '/' }
+   * //=> Token { type: 'slash', value: '/' }
    * console.log(lexer.scan(/^\w+/, 'text'));
-   * //=> Token { type: 'text', val: 'foo' }
+   * //=> Token { type: 'text', value: 'foo' }
    * console.log(lexer.scan(/^\//, 'slash'));
-   * //=> Token { type: 'slash', val: '/' }
+   * //=> Token { type: 'slash', value: '/' }
    * ```
    * @name .scan
    * @emits scan
@@ -242,16 +197,10 @@ class Lexer extends Emitter {
 
   scan(regex, type) {
     const match = this.match(regex);
-    if (!match) return;
-
-    try {
+    if (match) {
       const token = this.token(type, match);
       this.emit('scan', token);
       return token;
-    } catch (err) {
-      err.regex = regex;
-      err.type = type;
-      this.error(err);
     }
   }
 
@@ -294,24 +243,25 @@ class Lexer extends Emitter {
    * const lexer = new Lexer('/a/b');
    * lexer.capture('slash', /^\//);
    * lexer.capture('text', /^\w+/);
-   * console.log(lexer.lex('text'));
+   * console.log(lexer.handle('text'));
    * //=> undefined
-   * console.log(lexer.lex('slash'));
-   * //=> { type: 'slash', val: '/' }
-   * console.log(lexer.lex('text'));
-   * //=> { type: 'text', val: 'a' }
+   * console.log(lexer.handle('slash'));
+   * //=> { type: 'slash', value: '/' }
+   * console.log(lexer.handle('text'));
+   * //=> { type: 'text', value: 'a' }
    * ```
-   * @name .lex
-   * @emits lex
+   * @name .handle
+   * @emits handle
    * @param {String} `type` The handler type to call on `lexer.string`
    * @return {Object} Returns a token of the given `type` or undefined.
    * @api public
    */
 
-  lex(type) {
+  handle(type) {
     const token = this.get(type).call(this);
     if (token) {
-      this.emit('lex', token);
+      this.current = token;
+      this.emit('handle', token);
       return token;
     }
   }
@@ -326,17 +276,18 @@ class Lexer extends Emitter {
    * const token = lexer.advance();
    * ```
    * @name .advance
-   * @return {Object} Returns the first token returned by a handler.
+   * @return {Object} Returns the first token returned by a handler, or the first character in the remaining string if `options.mode` is set to `character`.
    * @api public
    */
 
   advance() {
     if (!this.string) return;
-    for (var type of this.types) {
-      var tok = this.lex(type);
-      if (tok) {
-        return tok;
-      }
+    if (this.options.mode === 'character') {
+      return (this.current = this.consume(1));
+    }
+    for (const type of this.types) {
+      const token = this.handle(type);
+      if (token) return token;
     }
     this.fail();
   }
@@ -350,11 +301,11 @@ class Lexer extends Emitter {
    * const tokens = lexer.tokenize('a/b/c');
    * console.log(tokens);
    * // Results in:
-   * // [ Token { type: 'text', val: 'a' },
-   * //   Token { type: 'slash', val: '/' },
-   * //   Token { type: 'text', val: 'b' },
-   * //   Token { type: 'slash', val: '/' },
-   * //   Token { type: 'text', val: 'c' } ]
+   * // [ Token { type: 'text', value: 'a' },
+   * //   Token { type: 'slash', value: '/' },
+   * //   Token { type: 'text', value: 'b' },
+   * //   Token { type: 'slash', value: '/' },
+   * //   Token { type: 'text', value: 'c' } ]
    * ```
    * @name .tokenize
    * @param {String} `input` The string to tokenize.
@@ -363,7 +314,7 @@ class Lexer extends Emitter {
    */
 
   tokenize(input) {
-    this.init(input);
+    if (input) this.init(input);
     while (this.push(this.next()));
     return this.tokens;
   }
@@ -401,7 +352,7 @@ class Lexer extends Emitter {
    */
 
   dequeue() {
-    return this.queue.shift();
+    return this.queue.length && this.queue.shift();
   }
 
   /**
@@ -422,21 +373,6 @@ class Lexer extends Emitter {
   }
 
   /**
-   * Get the current token.
-   *
-   * ```js
-   * const token = lexer.current();
-   * ```
-   * @name .current
-   * @returns {Object} Returns a token.
-   * @api public
-   */
-
-  current() {
-    return this.lookbehind(1);
-  }
-
-  /**
    * Get the previous token.
    *
    * ```js
@@ -448,7 +384,7 @@ class Lexer extends Emitter {
    */
 
   prev() {
-    return this.lookbehind(2);
+    return this.lookbehind(1);
   }
 
   /**
@@ -494,7 +430,7 @@ class Lexer extends Emitter {
    * const token = lexer.next();
    * ```
    * @name .next
-   * @returns {Object} Returns a token.
+   * @returns {Object|String} Returns a token, or (when `options.mode` is set to `character`) either gets the next character from `lexer.queue`, or consumes the next charcter in the string.
    * @api public
    */
 
@@ -503,7 +439,7 @@ class Lexer extends Emitter {
   }
 
   /**
-   * Skip `n` tokens. Skipped tokens are not enqueued.
+   * Skip `n` tokens or characters in the string. Skipped values are not enqueued.
    *
    * ```js
    * const token = lexer.skip(1);
@@ -516,8 +452,24 @@ class Lexer extends Emitter {
 
   skip(n) {
     assert.equal(typeof n, 'number', 'expected a number');
-    let skipped = [], tok;
-    while (n-- > 0 && (tok = this.next())) skipped.push(tok);
+    return this.skipWhile(() => n-- > 0);
+  }
+
+  /**
+   * Skip the given token `types`.
+   *
+   * ```js
+   * lexer.skipWhile(tok => tok.type !== 'space');
+   * ```
+   * @name .skipType
+   * @param {String|Array} `types` One or more token types to skip.
+   * @returns {Array} Returns an array if skipped tokens.
+   * @api public
+   */
+
+  skipWhile(fn) {
+    const skipped = [];
+    while (fn.call(this, this.peek())) skipped.push(this.dequeue());
     return skipped;
   }
 
@@ -535,39 +487,122 @@ class Lexer extends Emitter {
    */
 
   skipType(types) {
-    let skipped = [];
-    while (~arrayify(types).indexOf(this.peek().type)) {
-      skipped.push(this.dequeue());
-    }
+    return this.skipWhile(tok => ~arrayify(types).indexOf(tok.type));
+  }
+
+  /**
+   * Consume spaces.
+   *
+   * ```js
+   * lexer.skipSpaces();
+   * ```
+   * @name .skipSpaces
+   * @returns {String} Returned the skipped string.
+   * @api public
+   */
+
+  skipSpaces() {
+    let skipped = '';
+    while (this.string[0] === ' ') skipped += this.consume(1);
     return skipped;
   }
 
   /**
-   * Push a token onto `lexer.tokens`.
+   * Pushes the given `value` onto `lexer.stash`.
+   *
+   * ```js
+   * lexer.append('abc');
+   * lexer.append('/');
+   * lexer.append('*');
+   * lexer.append('.');
+   * lexer.append('js');
+   * console.log(lexer.stash);
+   * //=> ['abc', '/', '*', '.', 'js']
+   * ```
+   * @name .append
+   * @emits append
+   * @param {any} `value`
+   * @return {Object} Returns the Lexer instance.
+   * @api public
+   */
+
+  append(value, enqueue) {
+    if (!value) return;
+    this.emit('append', value);
+    this.stash.push(value);
+    return this;
+  }
+
+  /**
+   * Pushes the given `token` onto `lexer.tokens` and calls [.append()](#append) to push
+   * `token.value` onto `lexer.stash`. Disable pushing onto the stash by setting
+   * `lexer.options.append` or `token.append` to `false`.
    *
    * ```js
    * console.log(lexer.tokens.length); // 0
    * lexer.push(new Token('star', '*'));
    * console.log(lexer.tokens.length); // 1
+   * console.log(lexer.stash) // ['*']
    * ```
    * @name .push
    * @emits push
-   * @param {Object} `token`
-   * @return {Object} Returns the given token with updated `token.index`.
+   * @param {Object|String} `token`
+   * @return {Object} Returns the given `token`.
    * @api public
    */
 
   push(token) {
     if (!token) return;
-    assert(this.isToken(token), 'expected token to be an instance of Token');
+    if (this.options.mode !== 'character') {
+      assert(this.isToken(token), 'expected token to be an instance of Token');
+    }
+
     this.emit('push', token);
     this.tokens.push(token);
+
+    if (token.value && this.options.append !== false && token.append !== false) {
+      this.append(token.value);
+    }
     return token;
   }
 
   /**
-   * Returns true when the end-of-string has been reached, and
-   * `lexer.queue` is empty.
+   * Get the last value in the given array.
+   *
+   * ```js
+   * console.log(lexer.last(lexer.tokens));
+   * ```
+   * @name .last
+   * @param {Array} `arr`
+   * @returns {any}
+   * @api public
+   */
+
+  last(arr) {
+    return Array.isArray(arr) ? arr[arr.length - 1] : null;
+  }
+
+  /**
+   * Returns true if a token with the given `type` is on the stack.
+   *
+   * ```js
+   * if (lexer.isInside('bracket')) {
+   *   // do stuff
+   * }
+   * ```
+   * @name .isInside
+   * @return {Boolean}
+   * @api public
+   */
+
+  isInside(type) {
+    const token = this.stack.last;
+    if (token) return token.type === type;
+    return false;
+  }
+
+  /**
+   * Returns true if `lexer.string` and `lexer.queue` are empty.
    *
    * @name .eos
    * @return {Boolean}
@@ -579,25 +614,29 @@ class Lexer extends Emitter {
   }
 
   /**
-   * Throws an error when the remaining string cannot be lexed
-   * by the currently registered handlers.
-   * @param {String} `type`
-   * @api private
+   * Creates a new Lexer instance with the given options, and copy
+   * the handlers from the current instance to the new instance.
+   *
+   * @param {Object} `options`
+   * @param {Object} `parent` Optionally pass a different lexer instance to copy handlers from.
+   * @return {Object} Returns a new Lexer instance
+   * @api public
    */
 
-  fail() {
-    if (this.string) {
-      this.error(new Error('unmatched input: ' + this.string));
-    }
+  create(options, parent = this) {
+    const lexer = new this.constructor(options);
+    lexer.handlers = parent.handlers;
+    lexer.types = parent.types;
+    return lexer;
   }
 
   /**
    * Throw a formatted error message with details including the cursor position.
    *
    * ```js
-   * parser.set('foo', function(tok) {
-   *   if (tok.val !== 'foo') {
-   *     throw this.error('expected token.val to be "foo"', tok);
+   * lexer.set('foo', function(tok) {
+   *   if (tok.value !== 'foo') {
+   *     throw this.error('expected token.value to be "foo"', tok);
    *   }
    * });
    * ```
@@ -609,14 +648,47 @@ class Lexer extends Emitter {
    */
 
   error(err) {
-    if (typeof err === 'string') {
-      err = new Error(err);
-    }
+    if (typeof err === 'string') err = new Error(err);
     if (this.emit && this.hasListeners('error')) {
       this.emit('error', err);
     } else {
       throw err;
     }
+  }
+
+  /**
+   * Throw an error if `lexer.stack` is not empty, or when the remaining string
+   * cannot be lexed by the currently registered handlers.
+   * @api private
+   */
+
+  fail() {
+    if (this.stack.length) {
+      this.error(new Error(`unclosed: "${this.stack.last.match[0]}"`));
+    }
+    if (this.string) {
+      this.error(new Error(`unmatched input: "${this.string[0]}"`));
+    }
+  }
+
+  /**
+   * Get or set the `Stack` constructor to use for initializing Lexer stacks.
+   * @name .Stack
+   * @api private
+   */
+
+  get Stack() {
+    return this.options.Stack || Lexer.Stack;
+  }
+
+  /**
+   * Get or set the `Token` constructor to use when calling `lexer.token()`.
+   * @name .Token
+   * @api private
+   */
+
+  get Token() {
+    return this.options.Token || Lexer.Token;
   }
 
   /**
@@ -641,6 +713,37 @@ class Lexer extends Emitter {
   }
 
   /**
+   * Static method for getting or setting the `Stack` constructor.
+   *
+   * @name Lexer#Stack
+   * @api public
+   * @static
+   */
+
+  static set Stack(Ctor) {
+    Stack = Ctor;
+  }
+  static get Stack() {
+    return Stack;
+  }
+
+  /**
+   * Static method for getting or setting the `Token` constructor, used
+   * by `lexer.token()` to create a new token.
+   *
+   * @name Lexer#Token
+   * @api public
+   * @static
+   */
+
+  static set Token(Ctor) {
+    Token = Ctor;
+  }
+  static get Token() {
+    return Token;
+  }
+
+  /**
    * Static method that returns true if the given value is an
    * instance of `snapdragon-token`. This is a proxy to `Token#isToken`.
    *
@@ -662,8 +765,16 @@ class Lexer extends Emitter {
   }
 };
 
-function arrayify(val) {
-  return val != null ? (Array.isArray(val) ? val : [val]) : [];
+function arrayify(value) {
+  return value != null ? (Array.isArray(value) ? value : [value]) : [];
+}
+
+function define(obj, key, value) {
+  Reflect.defineProperty(obj, key, {configurable: true, writable: true, value: value});
+}
+
+function isString(input) {
+  return input && typeof input === 'string';
 }
 
 /**

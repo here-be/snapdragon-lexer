@@ -1,12 +1,17 @@
+/**
+ * Example of using the "snapdragon-position" plugin for
+ * adding start and end position to tokens
+ */
+
 const position = require('snapdragon-position');
-const Lexer = require('..');
-const lexer = new Lexer('foo/*');
-lexer.use(position());
+const Tokenizer = require('..');
+const tokenizer = new Tokenizer('foo/*');
+tokenizer.use(position());
 
-lexer.capture('slash', /^\//);
-lexer.capture('text', /^\w+/);
-lexer.capture('star', /^\*/);
+tokenizer.capture('slash', /^\//);
+tokenizer.capture('text', /^\w+/);
+tokenizer.capture('star', /^\*/);
 
-console.log(lexer.advance());
-console.log(lexer.advance());
-console.log(lexer.advance());
+console.log(tokenizer.advance());
+console.log(tokenizer.advance());
+console.log(tokenizer.advance());

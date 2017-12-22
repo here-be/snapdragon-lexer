@@ -25,7 +25,7 @@ describe('api.lookahead', function() {
     var tok = lexer.lookahead(3);
     assert(tok);
     assert.equal(tok.type, 'text');
-    assert.equal(tok.val, 'foo');
+    assert.equal(tok.value, 'foo');
   });
 
   it('should consume the captured substring', function() {

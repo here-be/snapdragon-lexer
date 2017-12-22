@@ -1,9 +1,13 @@
-const position = require('snapdragon-position');
-const Lexer = require('..');
-const lexer = new Lexer('foo/bar');
-lexer.use(position());
+/**
+ * Example of using the .match method
+ */
 
-const pos = lexer.position();
-const match = lexer.match(/^\w+/);
-const tok = pos(lexer.token('text', match[0], match));
+const position = require('snapdragon-position');
+const Tokenizer = require('..');
+const tokenizer = new Tokenizer('foo/bar');
+tokenizer.use(position());
+
+const pos = tokenizer.position();
+const match = tokenizer.match(/^\w+/);
+const tok = pos(tokenizer.token('text', match[0], match));
 console.log(tok);

@@ -28,6 +28,6 @@ describe('api.set', function() {
 
     assert(tok);
     assert.equal(tok.type, 'star');
-    assert.equal(tok.val, '*');
+    assert.equal(tok.value, '*');
   });
 });

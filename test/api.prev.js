@@ -19,7 +19,7 @@ describe('api.prev', function() {
     lexer.tokenize('//foo/bar.com');
     var text = lexer.prev();
     assert(text);
-    assert.equal(text.type, 'dot');
-    assert.equal(text.val, '.');
+    assert.equal(text.type, 'text');
+    assert.equal(text.value, 'com');
   });
 });

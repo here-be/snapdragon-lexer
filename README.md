@@ -27,7 +27,7 @@ console.log(lexer.tokenize('foo/*'));
 
 ## API
 
-### [Lexer](index.js#L26)
+### [Lexer](index.js#L24)
 
 Create a new `Lexer` with the given `options`.
 
@@ -83,57 +83,24 @@ lexer.isToken({}); // false
 lexer.isToken(new Token({type: 'star', val: '*'})); // true
 ```
 
-### [.set](index.js#L114)
+### [.consume](index.js#L111)
 
-Register a lexer handler function for creating tokens by matching substrings of the given `type.`
+Consume the given length from `lexer.string`. The consumed value is used to update `lexer.consumed`, as well as the current position.
 
 **Params**
 
-* `type` **{String}**
-* `fn` **{Function}**: The handler function to register.
+* `len` **{Number}**
+* `val` **{String}**: (optional)
+* `returns` **{String}**: Returns the consumed value
 
 **Example**
 
 ```js
-lexer.set('star', function() {
-  const match = this.match(regex, type);
-  if (match) {
-    return this.token({val: match[0]}, match);
-  }
-});
+lexer.consume(1);
+lexer.consume(1, '*');
 ```
 
-### [.get](index.js#L139)
-
-Get the registered lexer handler function of the given `type`. If a handler is not found, an error is thrown.
-
-**Params**
-
-* `type` **{String}**
-* `fn` **{Function}**: The handler function to register.
-
-**Example**
-
-```js
-const handler = lexer.get('text');
-```
-
-### [.consume](index.js#L159)
-
-Removes the given `string` from the beginning of `lexer.string` and adds it to the end of `lexer.consumed`, then updates `lexer.line` and `lexer.column` with the current cursor position.
-
-**Params**
-
-* `string` **{String}**
-* `returns` **{Object}**: Returns the instance for chaining.
-
-**Example**
-
-```js
-lexer.consume('*');
-```
-
-### [.match](index.js#L203)
+### [.match](index.js#L151)
 
 Capture a substring from `lexer.string` with the given `regex`. Also validates the regex to ensure that it starts with `^` since matching should always be against the beginning of the string, and throws if the regex matches an empty string, which can cause catastrophic backtracking in some cases.
 
@@ -151,7 +118,7 @@ console.log(match);
 //=> [ 'foo', index: 0, input: 'foo/bar' ]
 ```
 
-### [.scan](index.js#L243)
+### [.scan](index.js#L193)
 
 Scan for a matching substring by calling [.match()](#match) with the given `regex`. If a match is found, 1) a token of the specified `type` is created, 2) `match[0]` is used as `token.value`, and 3) the length of `match[0]` is sliced from `lexer.string` (by calling [.consume()](#consume)).
 
@@ -177,7 +144,7 @@ console.log(lexer.scan(/^\//, 'slash'));
 //=> Token { type: 'slash', val: '/' }
 ```
 
-### [.capture](index.js#L280)
+### [.capture](index.js#L224)
 
 Capture a token of the specified `type` using the provide `regex` for scanning and matching substrings. When [.tokenize](#tokenize) is use, captured tokens are pushed onto the `lexer.tokens` array.
 
@@ -200,7 +167,7 @@ lexer.capture('text', /^\w+/, tok => {
 });
 ```
 
-### [.lex](index.js#L311)
+### [.handle](index.js#L255)
 
 Calls handler `type` on `lexer.string`.
 
@@ -211,7 +178,7 @@ Calls handler `type` on `lexer.string`.
 
 **Events**
 
-* `emits`: lex
+* `emits`: handle
 
 **Example**
 
@@ -219,19 +186,19 @@ Calls handler `type` on `lexer.string`.
 const lexer = new Lexer('/a/b');
 lexer.capture('slash', /^\//);
 lexer.capture('text', /^\w+/);
-console.log(lexer.lex('text'));
+console.log(lexer.handle('text'));
 //=> undefined
-console.log(lexer.lex('slash'));
+console.log(lexer.handle('slash'));
 //=> { type: 'slash', val: '/' }
-console.log(lexer.lex('text'));
+console.log(lexer.handle('text'));
 //=> { type: 'text', val: 'a' }
 ```
 
-### [.advance](index.js#L333)
+### [.advance](index.js#L277)
 
 Get the next token by iterating over `lexer.handlers` and calling each handler on `lexer.string` until a handler returns a token. If no handlers return a token, an error is thrown with the substring that couldn't be lexed.
 
-* `returns` **{Object}**: Returns the first token returned by a handler.
+* `returns` **{Object}**: Returns the first token returned by a handler, or the first character in the remaining string if `options.mode` is set to `character`.
 
 **Example**
 
@@ -239,7 +206,7 @@ Get the next token by iterating over `lexer.handlers` and calling each handler o
 const token = lexer.advance();
 ```
 
-### [.tokenize](index.js#L365)
+### [.tokenize](index.js#L311)
 
 Tokenizes a string and returns an array of tokens.
 
@@ -263,7 +230,7 @@ console.log(tokens);
 //   Token { type: 'text', val: 'c' } ]
 ```
 
-### [.enqueue](index.js#L385)
+### [.enqueue](index.js#L331)
 
 Push a token onto the `lexer.queue` array.
 
@@ -280,7 +247,7 @@ lexer.enqueue(new Token('star', '*'));
 console.log(lexer.queue.length); // 1
 ```
 
-### [.dequeue](index.js#L403)
+### [.dequeue](index.js#L349)
 
 Shift a token from `lexer.queue`.
 
@@ -294,7 +261,7 @@ lexer.dequeue();
 console.log(lexer.queue.length); // 0
 ```
 
-### [.lookbehind](index.js#L419)
+### [.lookbehind](index.js#L365)
 
 Lookbehind `n` tokens.
 
@@ -309,7 +276,7 @@ Lookbehind `n` tokens.
 const token = lexer.lookbehind(2);
 ```
 
-### [.current](index.js#L435)
+### [.current](index.js#L381)
 
 Get the current token.
 
@@ -321,7 +288,7 @@ Get the current token.
 const token = lexer.current();
 ```
 
-### [.prev](index.js#L450)
+### [.prev](index.js#L396)
 
 Get the previous token.
 
@@ -333,7 +300,7 @@ Get the previous token.
 const token = lexer.prev();
 ```
 
-### [.lookahead](index.js#L468)
+### [.lookahead](index.js#L414)
 
 Lookahead `n` tokens and return the last token. Pushes any intermediate tokens onto `lexer.tokens.` To lookahead a single token, use [.peek()](#peek).
 
@@ -348,7 +315,7 @@ Lookahead `n` tokens and return the last token. Pushes any intermediate tokens o
 const token = lexer.lookahead(2);
 ```
 
-### [.peek](index.js#L486)
+### [.peek](index.js#L432)
 
 Lookahead a single token.
 
@@ -360,11 +327,11 @@ Lookahead a single token.
 const token = lexer.peek();
 ```
 
-### [.next](index.js#L501)
+### [.next](index.js#L447)
 
 Get the next token, either from the `queue` or by [advancing](#advance).
 
-* `returns` **{Object}**: Returns a token.
+* `returns` **{Object|String}**: Returns a token, or (when `options.mode` is set to `character`) either gets the next character from `lexer.queue`, or consumes the next charcter in the string.
 
 **Example**
 
@@ -372,9 +339,9 @@ Get the next token, either from the `queue` or by [advancing](#advance).
 const token = lexer.next();
 ```
 
-### [.skip](index.js#L517)
+### [.skip](index.js#L463)
 
-Skip `n` tokens. Skipped tokens are not enqueued.
+Skip `n` tokens or characters in the string. Skipped values are not enqueued.
 
 **Params**
 
@@ -387,7 +354,7 @@ Skip `n` tokens. Skipped tokens are not enqueued.
 const token = lexer.skip(1);
 ```
 
-### [.skipType](index.js#L537)
+### [.skipType](index.js#L483)
 
 Skip the given token `types`.
 
@@ -403,14 +370,29 @@ lexer.skipType('space');
 lexer.skipType(['newline', 'space']);
 ```
 
-### [.push](index.js#L560)
+### [.skipType](index.js#L501)
+
+Skip the given token `types`.
+
+**Params**
+
+* `types` **{String|Array}**: One or more token types to skip.
+* `returns` **{Array}**: Returns an array if skipped tokens.
+
+**Example**
+
+```js
+lexer.skipWhile(tok => tok.type !== 'space');
+```
+
+### [.push](index.js#L522)
 
 Push a token onto `lexer.tokens`.
 
 **Params**
 
-* `token` **{Object}**
-* `returns` **{Object}**: Returns the given token with updated `token.index`.
+* `tok` **{Object|String}**
+* `returns` **{Object}**: Returns the given `tok`.
 
 **Events**
 
@@ -424,12 +406,49 @@ lexer.push(new Token('star', '*'));
 console.log(lexer.tokens.length); // 1
 ```
 
-### [.eos](index.js#L577)
+### [.last](index.js#L544)
 
-Returns true when the end-of-string has been reached, and
-`lexer.queue` is empty.
+Get the last value in the given array.
+
+**Params**
+
+* `arr` **{Array}**
+* `returns` **{any}**
+
+**Example**
+
+```js
+console.log(lexer.last(lexer.tokens));
+```
+
+### [.isInside](index.js#L561)
+
+Returns true if a token with the given `type` is on the stack.
 
 * `returns` **{Boolean}**
+
+**Example**
+
+```js
+if (lexer.isInside('bracket')) {
+  // do stuff
+}
+```
+
+### [.eos](index.js#L573)
+
+Returns true if `lexer.string` and `lexer.queue` are empty.
+
+* `returns` **{Boolean}**
+
+Creates a new Lexer instance with the given options, and copy
+the handlers from the current instance to the new instance.
+
+**Params**
+
+* `options` **{Object}**
+* `parent` **{Object}**: Optionally pass a different lexer instance to copy handlers from.
+* `returns` **{Object}**: Returns a new Lexer instance
 
 ### [.error](index.js#L611)
 
@@ -444,14 +463,18 @@ Throw a formatted error message with details including the cursor position.
 **Example**
 
 ```js
-parser.set('foo', function(tok) {
-  if (tok.val !== 'foo') {
-    throw this.error('expected token.val to be "foo"', tok);
+lexer.set('foo', function(tok) {
+  if (tok.value !== 'foo') {
+    throw this.error('expected token.value to be "foo"', tok);
   }
 });
 ```
 
-### [Lexer#isLexer](index.js#L639)
+### [.Token](index.js#L645)
+
+Get or set the `Token` constructor to use when calling `lexer.token()`.
+
+### [Lexer#isLexer](index.js#L666)
 
 Static method that returns true if the given value is an instance of `snapdragon-lexer`.
 
@@ -469,7 +492,7 @@ console.log(Lexer.isLexer(lexer)); //=> true
 console.log(Lexer.isLexer({})); //=> false
 ```
 
-### [Lexer#isToken](index.js#L660)
+### [Lexer#isToken](index.js#L687)
 
 Static method that returns true if the given value is an instance of `snapdragon-token`. This is a proxy to `Token#isToken`.
 
@@ -486,6 +509,11 @@ const Lexer = require('snapdragon-lexer');
 console.log(Lexer.isToken(new Token({type: 'foo'}))); //=> true
 console.log(Lexer.isToken({})); //=> false
 ```
+
+### [Lexer#Token](index.js#L700)
+
+Static method for getting or setting the `Token` constructor to use
+when calling `lexer.token()`.
 
 ## Plugins
 
@@ -585,7 +613,6 @@ $ npm install && npm test
 ```
 
 </details>
-
 <details>
 <summary><strong>Building docs</strong></summary>
 
@@ -622,4 +649,4 @@ Released under the [MIT License](LICENSE).
 
 ***
 
-_This file was generated by [verb-generate-readme](https://github.com/verbose/verb-generate-readme), v0.6.0, on November 30, 2017._
+_This file was generated by [verb-generate-readme](https://github.com/verbose/verb-generate-readme), v0.6.0, on December 22, 2017._

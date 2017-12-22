@@ -14,25 +14,25 @@ describe('api.scan', function() {
   });
 
   it('should get the next token from the given regex', function() {
-    assert.deepEqual(lexer.scan(/^\//, 'slash'), { type: 'slash', val: '/' });
-    assert.deepEqual(lexer.scan(/^\//, 'slash'), { type: 'slash', val: '/' });
-    assert.deepEqual(lexer.scan(/^\w+/, 'text'), { type: 'text', val: 'foo' });
-    assert.deepEqual(lexer.scan(/^\//, 'slash'), { type: 'slash', val: '/' });
-    assert.deepEqual(lexer.scan(/^\w+/, 'text'), { type: 'text', val: 'bar' });
-    assert.deepEqual(lexer.scan(/^\./, 'dot'), { type: 'dot', val: '.' });
-    assert.deepEqual(lexer.scan(/^\w+/, 'text'), { type: 'text', val: 'com' });
+    assert.deepEqual(lexer.scan(/^\//, 'slash'), { type: 'slash', value: '/' });
+    assert.deepEqual(lexer.scan(/^\//, 'slash'), { type: 'slash', value: '/' });
+    assert.deepEqual(lexer.scan(/^\w+/, 'text'), { type: 'text', value: 'foo' });
+    assert.deepEqual(lexer.scan(/^\//, 'slash'), { type: 'slash', value: '/' });
+    assert.deepEqual(lexer.scan(/^\w+/, 'text'), { type: 'text', value: 'bar' });
+    assert.deepEqual(lexer.scan(/^\./, 'dot'), { type: 'dot', value: '.' });
+    assert.deepEqual(lexer.scan(/^\w+/, 'text'), { type: 'text', value: 'com' });
   });
 
   it('should emit "scan"', function() {
     var count = 0;
     var expected = [
-      { type: 'slash', val: '/' },
-      { type: 'slash', val: '/' },
-      { type: 'text', val: 'foo' },
-      { type: 'slash', val: '/' },
-      { type: 'text', val: 'bar' },
-      { type: 'dot', val: '.' },
-      { type: 'text', val: 'com' }
+      { type: 'slash', value: '/' },
+      { type: 'slash', value: '/' },
+      { type: 'text', value: 'foo' },
+      { type: 'slash', value: '/' },
+      { type: 'text', value: 'bar' },
+      { type: 'dot', value: '.' },
+      { type: 'text', value: 'com' }
     ];
 
     lexer.on('scan', function(tok) {

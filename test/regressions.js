@@ -25,7 +25,6 @@ describe('api.regressions', function() {
       'match',
       'next',
       'position',
-      'current',
       'prev',
       'set',
       'skip',

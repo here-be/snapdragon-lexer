@@ -17,7 +17,7 @@ describe('api.advance', function() {
     lexer.string = 'foo/*';
 
     const tok = lexer.advance();
-    assert.equal(tok.val, 'foo');
+    assert.equal(tok.value, 'foo');
   });
 
   it('should consume the matched substring', function() {

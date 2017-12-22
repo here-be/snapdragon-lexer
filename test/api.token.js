@@ -2,7 +2,6 @@
 
 require('mocha');
 const assert = require('assert');
-const position = require('snapdragon-position');
 const Lexer = require('..');
 let lexer;
 
@@ -13,6 +12,38 @@ describe('api.token', function() {
 
   it('should return an instance of lexer.Token', function() {
     assert(lexer.token('foo') instanceof lexer.Token);
+  });
+
+  it('should create a token from a string', function() {
+    const token = lexer.token('foo');
+    assert.equal(token.type, 'foo');
+    assert.equal(token.value, undefined);
+  });
+
+  it('should create a token from a string and value', function() {
+    const token = lexer.token('foo', 'bar');
+    assert.equal(token.type, 'foo');
+    assert.equal(token.value, 'bar');
+  });
+
+  it('should create a token from an object', function() {
+    const token = lexer.token({type: 'foo', value: 'bar'});
+    assert.equal(token.type, 'foo');
+    assert.equal(token.value, 'bar');
+  });
+
+  it('should create a token from an object and match array', function() {
+    const token = lexer.token({type: 'foo', value: 'bar'}, ['bar']);
+    assert.equal(token.type, 'foo');
+    assert.equal(token.value, 'bar');
+    assert.deepEqual(token.match, ['bar']);
+  });
+
+  it('should create a token from type and match array', function() {
+    const token = lexer.token('foo', ['bar']);
+    assert.equal(token.type, 'foo');
+    assert.equal(token.value, 'bar');
+    assert.deepEqual(token.match, ['bar']);
   });
 
   it('should emit "token"', function() {
