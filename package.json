@@ -1,7 +1,7 @@
 {
   "name": "snapdragon-lexer",
   "description": "Converts a string into an array of tokens, with useful methods for looking ahead and behind, capturing, matching, et cetera.",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "homepage": "https://github.com/here-be/snapdragon-lexer",
   "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
   "repository": "here-be/snapdragon-lexer",
