@@ -1,8 +1,40 @@
-# snapdragon-lexer [![NPM version](https://img.shields.io/npm/v/snapdragon-lexer.svg?style=flat)](https://www.npmjs.com/package/snapdragon-lexer) [![NPM monthly downloads](https://img.shields.io/npm/dm/snapdragon-lexer.svg?style=flat)](https://npmjs.org/package/snapdragon-lexer) [![NPM total downloads](https://img.shields.io/npm/dt/snapdragon-lexer.svg?style=flat)](https://npmjs.org/package/snapdragon-lexer) [![Linux Build Status](https://img.shields.io/travis/here-be-snapdragons/snapdragon-lexer.svg?style=flat&label=Travis)](https://travis-ci.org/here-be-snapdragons/snapdragon-lexer)
+# snapdragon-lexer [![NPM version](https://img.shields.io/npm/v/snapdragon-lexer.svg?style=flat)](https://www.npmjs.com/package/snapdragon-lexer) [![NPM monthly downloads](https://img.shields.io/npm/dm/snapdragon-lexer.svg?style=flat)](https://npmjs.org/package/snapdragon-lexer) [![NPM total downloads](https://img.shields.io/npm/dt/snapdragon-lexer.svg?style=flat)](https://npmjs.org/package/snapdragon-lexer) [![Linux Build Status](https://img.shields.io/travis/here-be/snapdragon-lexer.svg?style=flat&label=Travis)](https://travis-ci.org/here-be/snapdragon-lexer)
 
 > Converts a string into an array of tokens, with useful methods for looking ahead and behind, capturing, matching, et cetera.
 
 Please consider following this project's author, [Jon Schlinkert](https://github.com/jonschlinkert), and consider starring the project to show your :heart: and support.
+
+## Table of Contents
+
+<details>
+<summary><strong>Details</strong></summary>
+
+- [Install](#install)
+- [Breaking changes in v2.0!](#breaking-changes-in-v20)
+- [Usage](#usage)
+- [API](#api)
+  * [.set](#set)
+  * [.get](#get)
+- [Properties](#properties)
+  * [lexer.isLexer](#lexerislexer)
+  * [lexer.input](#lexerinput)
+  * [lexer.string](#lexerstring)
+  * [lexer.consumed](#lexerconsumed)
+  * [lexer.tokens](#lexertokens)
+  * [lexer.stash](#lexerstash)
+  * [lexer.stack](#lexerstack)
+  * [lexer.queue](#lexerqueue)
+  * [lexer.loc](#lexerloc)
+- [Options](#options)
+  * [options.source](#optionssource)
+  * [options.mode](#optionsmode)
+  * [options.value](#optionsvalue)
+- [Tokens](#tokens)
+- [Plugins](#plugins)
+  * [Plugin Conventions](#plugin-conventions)
+- [About](#about)
+
+</details>
 
 ## Install
 
@@ -11,6 +43,10 @@ Install with [npm](https://www.npmjs.com/):
 ```sh
 $ npm install --save snapdragon-lexer
 ```
+
+## Breaking changes in v2.0!
+
+Please see the [changelog](CHANGELOG.md) for details!
 
 ## Usage
 
@@ -27,7 +63,7 @@ console.log(lexer.tokenize('foo/*'));
 
 ## API
 
-### [Lexer](index.js#L24)
+### [Lexer](index.js#L27)
 
 Create a new `Lexer` with the given `options`.
 
@@ -43,16 +79,16 @@ const Lexer = require('snapdragon-lexer');
 const lexer = new Lexer('foo/bar');
 ```
 
-### [.token](index.js#L72)
+### [.token](index.js#L82)
 
-Create a new [Token](https://github.com/here-be-snapdragons/snapdragon-token) with the given `type` and `val`.
+Create a new [Token](https://github.com/here-be/snapdragon-token) with the given `type` and `value`.
 
 **Params**
 
 * `type` **{String|Object}**: (required) The type of token to create
-* `val` **{String}**: (optional) The captured string
+* `value` **{String}**: (optional) The captured string
 * `match` **{Array}**: (optional) Match arguments returned from `String.match` or `RegExp.exec`
-* `returns` **{Object}**: Returns an instance of [snapdragon-token](https://github.com/here-be-snapdragons/snapdragon-token)
+* `returns` **{Object}**: Returns an instance of [snapdragon-token](https://github.com/here-be/snapdragon-token)
 
 **Events**
 
@@ -61,14 +97,14 @@ Create a new [Token](https://github.com/here-be-snapdragons/snapdragon-token) wi
 **Example**
 
 ```js
-console.log(lexer.token({type: 'star', val: '*'}));
+console.log(lexer.token({type: 'star', value: '*'}));
 console.log(lexer.token('star', '*'));
 console.log(lexer.token('star'));
 ```
 
-### [.isToken](index.js#L92)
+### [.isToken](index.js#L102)
 
-Returns true if the given value is a [snapdragon-token](https://github.com/here-be-snapdragons/snapdragon-token) instance.
+Returns true if the given value is a [snapdragon-token](https://github.com/here-be/snapdragon-token) instance.
 
 **Params**
 
@@ -80,17 +116,17 @@ Returns true if the given value is a [snapdragon-token](https://github.com/here-
 ```js
 const Token = require('snapdragon-token');
 lexer.isToken({}); // false
-lexer.isToken(new Token({type: 'star', val: '*'})); // true
+lexer.isToken(new Token({type: 'star', value: '*'})); // true
 ```
 
-### [.consume](index.js#L111)
+### [.consume](index.js#L121)
 
 Consume the given length from `lexer.string`. The consumed value is used to update `lexer.consumed`, as well as the current position.
 
 **Params**
 
 * `len` **{Number}**
-* `val` **{String}**: (optional)
+* `value` **{String}**: Optionally pass the value being consumed.
 * `returns` **{String}**: Returns the consumed value
 
 **Example**
@@ -100,7 +136,7 @@ lexer.consume(1);
 lexer.consume(1, '*');
 ```
 
-### [.match](index.js#L151)
+### [.match](index.js#L161)
 
 Capture a substring from `lexer.string` with the given `regex`. Also validates the regex to ensure that it starts with `^` since matching should always be against the beginning of the string, and throws if the regex matches an empty string, which can cause catastrophic backtracking in some cases.
 
@@ -118,7 +154,7 @@ console.log(match);
 //=> [ 'foo', index: 0, input: 'foo/bar' ]
 ```
 
-### [.scan](index.js#L193)
+### [.scan](index.js#L204)
 
 Scan for a matching substring by calling [.match()](#match) with the given `regex`. If a match is found, 1) a token of the specified `type` is created, 2) `match[0]` is used as `token.value`, and 3) the length of `match[0]` is sliced from `lexer.string` (by calling [.consume()](#consume)).
 
@@ -137,16 +173,16 @@ Scan for a matching substring by calling [.match()](#match) with the given `rege
 ```js
 lexer.string = '/foo/';
 console.log(lexer.scan(/^\//, 'slash'));
-//=> Token { type: 'slash', val: '/' }
+//=> Token { type: 'slash', value: '/' }
 console.log(lexer.scan(/^\w+/, 'text'));
-//=> Token { type: 'text', val: 'foo' }
+//=> Token { type: 'text', value: 'foo' }
 console.log(lexer.scan(/^\//, 'slash'));
-//=> Token { type: 'slash', val: '/' }
+//=> Token { type: 'slash', value: '/' }
 ```
 
-### [.capture](index.js#L224)
+### [.capture](index.js#L240)
 
-Capture a token of the specified `type` using the provide `regex` for scanning and matching substrings. When [.tokenize](#tokenize) is use, captured tokens are pushed onto the `lexer.tokens` array.
+Capture a token of the specified `type` using the provide `regex` for scanning and matching substrings. Automatically registers a handler when a function is passed as the last argument.
 
 **Params**
 
@@ -159,15 +195,15 @@ Capture a token of the specified `type` using the provide `regex` for scanning a
 
 ```js
 lexer.capture('text', /^\w+/);
-lexer.capture('text', /^\w+/, tok => {
-  if (tok.match[1] === 'foo') {
+lexer.capture('text', /^\w+/, token => {
+  if (token.value === 'foo') {
     // do stuff
   }
-  return tok;
+  return token;
 });
 ```
 
-### [.handle](index.js#L255)
+### [.handle](index.js#L271)
 
 Calls handler `type` on `lexer.string`.
 
@@ -189,12 +225,12 @@ lexer.capture('text', /^\w+/);
 console.log(lexer.handle('text'));
 //=> undefined
 console.log(lexer.handle('slash'));
-//=> { type: 'slash', val: '/' }
+//=> { type: 'slash', value: '/' }
 console.log(lexer.handle('text'));
-//=> { type: 'text', val: 'a' }
+//=> { type: 'text', value: 'a' }
 ```
 
-### [.advance](index.js#L277)
+### [.advance](index.js#L294)
 
 Get the next token by iterating over `lexer.handlers` and calling each handler on `lexer.string` until a handler returns a token. If no handlers return a token, an error is thrown with the substring that couldn't be lexed.
 
@@ -206,7 +242,7 @@ Get the next token by iterating over `lexer.handlers` and calling each handler o
 const token = lexer.advance();
 ```
 
-### [.tokenize](index.js#L311)
+### [.tokenize](index.js#L327)
 
 Tokenizes a string and returns an array of tokens.
 
@@ -223,14 +259,14 @@ lexer.capture('text', /^\w+/);
 const tokens = lexer.tokenize('a/b/c');
 console.log(tokens);
 // Results in:
-// [ Token { type: 'text', val: 'a' },
-//   Token { type: 'slash', val: '/' },
-//   Token { type: 'text', val: 'b' },
-//   Token { type: 'slash', val: '/' },
-//   Token { type: 'text', val: 'c' } ]
+// [ Token { type: 'text', value: 'a' },
+//   Token { type: 'slash', value: '/' },
+//   Token { type: 'text', value: 'b' },
+//   Token { type: 'slash', value: '/' },
+//   Token { type: 'text', value: 'c' } ]
 ```
 
-### [.enqueue](index.js#L331)
+### [.enqueue](index.js#L347)
 
 Push a token onto the `lexer.queue` array.
 
@@ -247,7 +283,7 @@ lexer.enqueue(new Token('star', '*'));
 console.log(lexer.queue.length); // 1
 ```
 
-### [.dequeue](index.js#L349)
+### [.dequeue](index.js#L365)
 
 Shift a token from `lexer.queue`.
 
@@ -261,7 +297,7 @@ lexer.dequeue();
 console.log(lexer.queue.length); // 0
 ```
 
-### [.lookbehind](index.js#L365)
+### [.lookbehind](index.js#L381)
 
 Lookbehind `n` tokens.
 
@@ -276,19 +312,7 @@ Lookbehind `n` tokens.
 const token = lexer.lookbehind(2);
 ```
 
-### [.current](index.js#L381)
-
-Get the current token.
-
-* `returns` **{Object}**: Returns a token.
-
-**Example**
-
-```js
-const token = lexer.current();
-```
-
-### [.prev](index.js#L396)
+### [.prev](index.js#L397)
 
 Get the previous token.
 
@@ -300,7 +324,7 @@ Get the previous token.
 const token = lexer.prev();
 ```
 
-### [.lookahead](index.js#L414)
+### [.lookahead](index.js#L415)
 
 Lookahead `n` tokens and return the last token. Pushes any intermediate tokens onto `lexer.tokens.` To lookahead a single token, use [.peek()](#peek).
 
@@ -315,7 +339,7 @@ Lookahead `n` tokens and return the last token. Pushes any intermediate tokens o
 const token = lexer.lookahead(2);
 ```
 
-### [.peek](index.js#L432)
+### [.peek](index.js#L433)
 
 Lookahead a single token.
 
@@ -327,7 +351,7 @@ Lookahead a single token.
 const token = lexer.peek();
 ```
 
-### [.next](index.js#L447)
+### [.next](index.js#L448)
 
 Get the next token, either from the `queue` or by [advancing](#advance).
 
@@ -339,7 +363,7 @@ Get the next token, either from the `queue` or by [advancing](#advance).
 const token = lexer.next();
 ```
 
-### [.skip](index.js#L463)
+### [.skip](index.js#L464)
 
 Skip `n` tokens or characters in the string. Skipped values are not enqueued.
 
@@ -354,7 +378,22 @@ Skip `n` tokens or characters in the string. Skipped values are not enqueued.
 const token = lexer.skip(1);
 ```
 
-### [.skipType](index.js#L483)
+### [.skipType](index.js#L481)
+
+Skip the given token `types`.
+
+**Params**
+
+* `types` **{String|Array}**: One or more token types to skip.
+* `returns` **{Array}**: Returns an array if skipped tokens.
+
+**Example**
+
+```js
+lexer.skipWhile(tok => tok.type !== 'space');
+```
+
+### [.skipType](index.js#L500)
 
 Skip the given token `types`.
 
@@ -370,29 +409,51 @@ lexer.skipType('space');
 lexer.skipType(['newline', 'space']);
 ```
 
-### [.skipType](index.js#L501)
+### [.skipSpaces](index.js#L515)
 
-Skip the given token `types`.
+Consume spaces.
 
-**Params**
-
-* `types` **{String|Array}**: One or more token types to skip.
-* `returns` **{Array}**: Returns an array if skipped tokens.
+* `returns` **{String}**: Returned the skipped string.
 
 **Example**
 
 ```js
-lexer.skipWhile(tok => tok.type !== 'space');
+lexer.skipSpaces();
 ```
 
-### [.push](index.js#L522)
+### [.append](index.js#L540)
 
-Push a token onto `lexer.tokens`.
+Pushes the given `value` onto `lexer.stash`.
 
 **Params**
 
-* `tok` **{Object|String}**
-* `returns` **{Object}**: Returns the given `tok`.
+* `value` **{any}**
+* `returns` **{Object}**: Returns the Lexer instance.
+
+**Events**
+
+* `emits`: append
+
+**Example**
+
+```js
+lexer.append('abc');
+lexer.append('/');
+lexer.append('*');
+lexer.append('.');
+lexer.append('js');
+console.log(lexer.stash);
+//=> ['abc', '/', '*', '.', 'js']
+```
+
+### [.push](index.js#L569)
+
+Pushes the given `token` onto `lexer.tokens` and calls [.append()](#append) to push `token.value` onto `lexer.stash`. Disable pushing onto the stash by setting `lexer.options.append` or `token.append` to `false`.
+
+**Params**
+
+* `token` **{Object|String}**
+* `returns` **{Object}**: Returns the given `token`.
 
 **Events**
 
@@ -404,15 +465,16 @@ Push a token onto `lexer.tokens`.
 console.log(lexer.tokens.length); // 0
 lexer.push(new Token('star', '*'));
 console.log(lexer.tokens.length); // 1
+console.log(lexer.stash) // ['*']
 ```
 
-### [.last](index.js#L544)
+### [.last](index.js#L596)
 
 Get the last value in the given array.
 
 **Params**
 
-* `arr` **{Array}**
+* `array` **{Array}**
 * `returns` **{any}**
 
 **Example**
@@ -421,21 +483,31 @@ Get the last value in the given array.
 console.log(lexer.last(lexer.tokens));
 ```
 
-### [.isInside](index.js#L561)
+### [.isInside](index.js#L614)
 
 Returns true if a token with the given `type` is on the stack.
 
+**Params**
+
+* `type` **{String}**: The type to check for.
 * `returns` **{Boolean}**
 
 **Example**
 
 ```js
-if (lexer.isInside('bracket')) {
+if (lexer.isInside('bracket') || lexer.isInside('brace')) {
   // do stuff
 }
 ```
 
-### [.eos](index.js#L573)
+### [.value](index.js#L627)
+
+Returns the value of a token using the property defined on `lexer.options.value`
+or `token.value`.
+
+* `returns` **{String|undefined}**
+
+### [.eos](index.js#L639)
 
 Returns true if `lexer.string` and `lexer.queue` are empty.
 
@@ -450,7 +522,7 @@ the handlers from the current instance to the new instance.
 * `parent` **{Object}**: Optionally pass a different lexer instance to copy handlers from.
 * `returns` **{Object}**: Returns a new Lexer instance
 
-### [.error](index.js#L611)
+### [.error](index.js#L677)
 
 Throw a formatted error message with details including the cursor position.
 
@@ -470,11 +542,7 @@ lexer.set('foo', function(tok) {
 });
 ```
 
-### [.Token](index.js#L645)
-
-Get or set the `Token` constructor to use when calling `lexer.token()`.
-
-### [Lexer#isLexer](index.js#L666)
+### [Lexer#isLexer](index.js#L740)
 
 Static method that returns true if the given value is an instance of `snapdragon-lexer`.
 
@@ -492,7 +560,16 @@ console.log(Lexer.isLexer(lexer)); //=> true
 console.log(Lexer.isLexer({})); //=> false
 ```
 
-### [Lexer#isToken](index.js#L687)
+### [Lexer#Stack](index.js#L752)
+
+Static method for getting or setting the `Stack` constructor.
+
+### [Lexer#Token](index.js#L768)
+
+Static method for getting or setting the `Token` constructor, used
+by `lexer.token()` to create a new token.
+
+### [Lexer#isToken](index.js#L792)
 
 Static method that returns true if the given value is an instance of `snapdragon-token`. This is a proxy to `Token#isToken`.
 
@@ -510,86 +587,186 @@ console.log(Lexer.isToken(new Token({type: 'foo'}))); //=> true
 console.log(Lexer.isToken({})); //=> false
 ```
 
-### [Lexer#Token](index.js#L700)
+### .set
 
-Static method for getting or setting the `Token` constructor to use
-when calling `lexer.token()`.
+Register a handler function.
+
+**Params**
+
+* `type` **{String}**
+* `fn` **{Function}**: The handler function to register.
+
+**Example**
+
+```js
+lexer.set('star', function(token) {
+  // do parser, lexer, or compiler stuff
+});
+```
+
+As an alternative to `.set`, the [.capture](#capture) method will automatically register a handler when a function is passed as the last argument.
+
+### .get
+
+Get a registered handler function.
+
+**Params**
+
+* `type` **{String}**
+* `fn` **{Function}**: The handler function to register.
+
+**Example**
+
+```js
+lexer.set('star', function() {
+  // do parser, lexer, or compiler stuff
+});
+const star = handlers.get('star');
+```
+
+## Properties
+
+### lexer.isLexer
+
+Type: **{boolean}**
+
+Default: `true` (contant)
+
+This property is defined as a convenience, to make it easy for plugins to check for an instance of Lexer.
+
+### lexer.input
+
+Type: **{string}**
+
+Default: `''`
+
+The unmodified source string provided by the user.
+
+### lexer.string
+
+Type: **{string}**
+
+Default: `''`
+
+The source string minus the part of the string that has already been [consumed](#consume).
+
+### lexer.consumed
+
+Type: **{string}**
+
+Default: `''`
+
+The part of the source string that has been consumed.
+
+### lexer.tokens
+
+Type: **{array}**
+
+Default: `[]
+
+Array of lexed tokens.
+
+### lexer.stash
+
+Type: **{array}**
+
+Default: `['']`
+
+Array of captured strings. Similar to the [lexer.tokens](#lexertokens) array, but stores strings instead of token objects.
+
+### lexer.stack
+
+Type: **{array}**
+
+Default: `[]
+
+LIFO (last in, first out) array. A token is pushed onto the stack when an "opening" character or character sequence needs to be tracked. When the (matching) "closing" character or character sequence is encountered, the (opening) token is popped off of the stack.
+
+The stack is not used by any lexer methods, it's reserved for the user. Stacks are necessary for creating Abstract Syntax Trees (ASTs), but if you require this functionality it would be better to use a parser such as [snapdragon-parser][snapdragon-parser], with methods and other conveniences for creating an AST.
+
+### lexer.queue
+
+Type: **{array}**
+
+Default: `[]
+
+FIFO (first in, first out) array, for temporarily storing tokens that are created when [.lookahead()](#lookahead) is called (or a method that calls `.lookhead()`, such as [.peek()](#peek)).
+
+Tokens are [dequeued](#dequeue) when [.next()](#next) is called.
+
+### lexer.loc
+
+Type: **{Object}**
+
+Default: `{ index: 0, column: 0, line: 1 }`
+
+The updated source string location with the following properties.
+
+* `index` - 0-index
+* `column` - 0-index
+* `line` - 1-index
+
+The following plugins are available for automatically updating tokens with the location:
+
+* [snapdragon-location](https://github.com/here-be/snapdragon-location)
+* [snapdragon-position](https://github.com/here-be/snapdragon-position)
+
+## Options
+
+### options.source
+
+Type: **{string}**
+
+Default: `undefined`
+
+The source of the input string. This is typically a filename or file path, but can also be `'string'` if a string or buffer is provided directly.
+
+If `lexer.input` is undefined, and `options.source` is a string, the lexer will attempt to set `lexer.input` by calling `fs.readFileSync()` on the value provided on `options.source`.
+
+### options.mode
+
+Type: **{string}**
+
+Default: `undefined`
+
+If `options.mode` is `character`, instead of calling handlers (which match using regex) the [.advance()](advance) method will [consume](#consume) and return one character at a time.
+
+### options.value
+
+Type: **{string}**
+
+Default: `undefined`
+
+Specify the token property to use when the [.push](#push) method pushes a value onto [lexer.stash](#lexerstash). The logic works something like this:
+
+```js
+lexer.append(token[lexer.options.value || 'value']);
+```
+
+## Tokens
+
+See the [snapdragon-token](https://github.com/here-be/snapdragon-token) documentation for more details.
 
 ## Plugins
 
-Pass plugins to the `lexer.use()` method.
-
-**Example**
-
-The [snapdragon-position](https://github.com/here-be-snapdragons/snapdragon-position) plugin adds a `position` property with line and column to tokens as they're created:
-
-```js
-const position = require('snapdragon-position');
-const Lexer = require('snapdragon-lexer');
-const lexer = new Lexer();
-
-lexer.use(position());
-lexer.capture('slash', /^\//);
-lexer.capture('text', /^\w+/);
-lexer.capture('star', /^\*/);
-
-// "advance" captures a single token
-console.log(lexer.advance());
-console.log(lexer.advance());
-console.log(lexer.advance());
-```
-
-Results in:
-
-```js
-Token {
-  type: 'text',
-  val: 'foo',
-  match: [ 'foo', index: 0, input: 'foo/*' ],
-  position: {
-    start: { index: 0, column: 1, line: 1 },
-    end: { index: 3, column: 4, line: 1 } 
-  } 
-}
-
-Token {
-  type: 'slash',
-  val: '/',
-  match: [ '/', index: 0, input: '/*' ],
-  position: {
-    start: { index: 3, column: 4, line: 1 },
-    end: { index: 4, column: 5, line: 1 } 
-  } 
-}
-
-Token {
-  type: 'star',
-  val: '*',
-  match: [ '*', index: 0, input: '*' ],
-  position: {
-    start: { index: 4, column: 5, line: 1 },
-    end: { index: 5, column: 6, line: 1 } 
-  } 
-}
-```
+Plugins are registered with the `lexer.use()` method and use the following conventions.
 
 ### Plugin Conventions
 
-Plugins are just functions that take an instance of snapdragon-lexer. However, it's recommended that you wrap your plugin function in a function that takes an options object, to allow users to pass options when using the plugin. _Even if your plugin doesn't take options, it's a best practice for users to always be able to use the same signature_.
+Plugins are functions that take an instance of snapdragon-lexer.
+
+However, it's recommended that you always wrap your plugin function in another function that takes an options object. This allow users to pass options when using the plugin. _Even if your plugin doesn't take options, it's a best practice for users to always be able to use the same signature_.
 
 **Example**
 
 ```js
-const Lexer = require('snapdragon-lexer');
-const lexer = new Lexer();
-
-function yourPlugin(options) {
+function plugin(options) {
   return function(lexer) {
-    // do stuff to lexer
+    // do stuff 
   };
 }
 
-lexer.use(yourPlugin());
+lexer.use(plugin());
 ```
 
 ## About
@@ -631,8 +808,8 @@ $ npm install -g verbose/verb#dev verb-generate-readme && verb
 You might also be interested in these projects:
 
 * [snapdragon-node](https://www.npmjs.com/package/snapdragon-node): Snapdragon utility for creating a new AST node in custom code, such as plugins. | [homepage](https://github.com/jonschlinkert/snapdragon-node "Snapdragon utility for creating a new AST node in custom code, such as plugins.")
-* [snapdragon-position](https://www.npmjs.com/package/snapdragon-position): Snapdragon util and plugin for patching the position on an AST node. | [homepage](https://github.com/here-be-snapdragons/snapdragon-position "Snapdragon util and plugin for patching the position on an AST node.")
-* [snapdragon-token](https://www.npmjs.com/package/snapdragon-token): Create a snapdragon token. Used by the snapdragon lexer, but can also be used by… [more](https://github.com/here-be-snapdragons/snapdragon-token) | [homepage](https://github.com/here-be-snapdragons/snapdragon-token "Create a snapdragon token. Used by the snapdragon lexer, but can also be used by plugins.")
+* [snapdragon-position](https://www.npmjs.com/package/snapdragon-position): Snapdragon util and plugin for patching the position on an AST node. | [homepage](https://github.com/here-be/snapdragon-position "Snapdragon util and plugin for patching the position on an AST node.")
+* [snapdragon-token](https://www.npmjs.com/package/snapdragon-token): Create a snapdragon token. Used by the snapdragon lexer, but can also be used by… [more](https://github.com/here-be/snapdragon-token) | [homepage](https://github.com/here-be/snapdragon-token "Create a snapdragon token. Used by the snapdragon lexer, but can also be used by plugins.")
 
 ### Author
 
@@ -644,9 +821,9 @@ You might also be interested in these projects:
 
 ### License
 
-Copyright © 2017, [Jon Schlinkert](https://github.com/jonschlinkert).
+Copyright © 2018, [Jon Schlinkert](https://github.com/jonschlinkert).
 Released under the [MIT License](LICENSE).
 
 ***
 
-_This file was generated by [verb-generate-readme](https://github.com/verbose/verb-generate-readme), v0.6.0, on December 22, 2017._
+_This file was generated by [verb-generate-readme](https://github.com/verbose/verb-generate-readme), v0.6.0, on January 08, 2018._
