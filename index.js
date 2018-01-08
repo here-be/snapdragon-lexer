@@ -28,11 +28,18 @@ class Lexer extends Handlers {
     if (typeof input !== 'string') {
       return new Lexer('', input);
     }
+
     super(options);
     if (Lexer.isLexer(options)) {
       return this.create(options.options, options);
     }
-    this.isLexer = true;
+
+    Reflect.defineProperty(this, 'isLexer', {
+      configurable: false,
+      writable: false,
+      value: true
+    });
+
     this.init(input);
   }
 
@@ -197,25 +204,30 @@ class Lexer extends Handlers {
 
   scan(regex, type) {
     const match = this.match(regex);
-    if (match) {
+    if (!match) return;
+    try {
       const token = this.token(type, match);
       this.emit('scan', token);
       return token;
+    } catch (err) {
+      err.regex = regex;
+      err.type = type;
+      this.error(err);
     }
   }
 
   /**
    * Capture a token of the specified `type` using the provide `regex`
-   * for scanning and matching substrings. When [.tokenize](#tokenize) is
-   * use, captured tokens are pushed onto the `lexer.tokens` array.
+   * for scanning and matching substrings. Automatically registers a handler
+   * when a function is passed as the last argument.
    *
    * ```js
    * lexer.capture('text', /^\w+/);
-   * lexer.capture('text', /^\w+/, tok => {
-   *   if (tok.match[1] === 'foo') {
+   * lexer.capture('text', /^\w+/, token => {
+   *   if (token.value === 'foo') {
    *     // do stuff
    *   }
-   *   return tok;
+   *   return token;
    * });
    * ```
    * @name .capture
@@ -560,8 +572,8 @@ class Lexer extends Handlers {
     this.emit('push', token);
     this.tokens.push(token);
 
-    if (token.value && this.options.append !== false && token.append !== false) {
-      this.append(token.value);
+    if (this.options.append !== false && token.append !== false) {
+      this.append(this.value(token));
     }
     return token;
   }
@@ -573,32 +585,44 @@ class Lexer extends Handlers {
    * console.log(lexer.last(lexer.tokens));
    * ```
    * @name .last
-   * @param {Array} `arr`
+   * @param {Array} `array`
    * @returns {any}
    * @api public
    */
 
-  last(arr) {
-    return Array.isArray(arr) ? arr[arr.length - 1] : null;
+  last(array) {
+    return Array.isArray(array) ? array[array.length - 1] : null;
   }
 
   /**
    * Returns true if a token with the given `type` is on the stack.
    *
    * ```js
-   * if (lexer.isInside('bracket')) {
+   * if (lexer.isInside('bracket') || lexer.isInside('brace')) {
    *   // do stuff
    * }
    * ```
    * @name .isInside
+   * @param {String} `type` The type to check for.
    * @return {Boolean}
    * @api public
    */
 
   isInside(type) {
-    const token = this.stack.last;
-    if (token) return token.type === type;
-    return false;
+    return this.isToken(this.stack.last) && this.stack.last.type === type;
+  }
+
+  /**
+   * Returns the value of a token using the property defined on `lexer.options.value`
+   * or `token.value`.
+   *
+   * @name .value
+   * @return {String|undefined}
+   * @api public
+   */
+
+  value(token) {
+    return token[this.options.value || 'value'];
   }
 
   /**
