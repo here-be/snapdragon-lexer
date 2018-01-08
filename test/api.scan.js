@@ -13,6 +13,19 @@ describe('api.scan', function() {
     lexer.on('token', tok => define(tok, 'match', tok.match));
   });
 
+  it('should throw when regex matches an empty string', function() {
+    assert.throws(() => lexer.scan(/^(?=.)/, 'foo'), /empty/);
+  });
+
+  it('should add type to error object', function(cb) {
+    try {
+      lexer.scan(/^(?=.)/, 'foo');
+    } catch (err) {
+      assert.equal(err.type, 'foo');
+      cb();
+    }
+  });
+
   it('should get the next token from the given regex', function() {
     assert.deepEqual(lexer.scan(/^\//, 'slash'), { type: 'slash', value: '/' });
     assert.deepEqual(lexer.scan(/^\//, 'slash'), { type: 'slash', value: '/' });

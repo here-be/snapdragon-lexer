@@ -11,13 +11,17 @@ describe('api.match', function() {
   });
 
   it('should throw when arguments are invalid', function() {
-    assert.throws(() => lexer.match(null));
-    assert.throws(() => lexer.match([]));
-    assert.throws(() => lexer.match({}));
+    assert.throws(() => lexer.match(null), /expected/);
+    assert.throws(() => lexer.match([]), /expected/);
+    assert.throws(() => lexer.match({}), /expected/);
+  });
+
+  it('should throw when regex matches an empty string', function() {
+    assert.throws(() => lexer.match(/^(?=.)/), /empty/);
   });
 
   it('should match with regex', function() {
-    const match = lexer.match(/^\w/, 'text');
+    const match = lexer.match(/^\w/);
     assert(match);
     assert.equal(match[0], 'f');
     assert.equal(match.index, 0);

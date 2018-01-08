@@ -30,4 +30,22 @@ describe('api.advance', function() {
     assert.equal(lexer.consumed, 'foo');
     assert.equal(lexer.string, '/*');
   });
+
+  it('should fail when a match is not found', function() {
+    lexer.string = 'foo/*';
+    assert.throws(function() {
+      lexer.advance();
+    }, /unmatched/);
+  });
+
+  it('should advance in character mode', function() {
+    lexer.options.mode = 'character';
+    lexer.string = 'foo/*';
+
+    assert.equal(lexer.advance(), 'f');
+    assert.equal(lexer.advance(), 'o');
+    assert.equal(lexer.advance(), 'o');
+    assert.equal(lexer.advance(), '/');
+    assert.equal(lexer.advance(), '*');
+  });
 });

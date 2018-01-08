@@ -6,8 +6,9 @@
 
 const fs = require('fs');
 const assert = require('assert');
+const typeOf = require('kind-of');
 const Handlers = require('snapdragon-handlers');
-const Stack = require('snapdragon-stack');
+let Stack = require('snapdragon-stack');
 let Token = require('snapdragon-token');
 
 /**
@@ -34,12 +35,9 @@ class Lexer extends Handlers {
       return this.create(options.options, options);
     }
 
-    Reflect.defineProperty(this, 'isLexer', {
-      configurable: false,
-      writable: false,
-      value: true
-    });
-
+    define(this, 'isLexer', true);
+    this.string = '';
+    this.input = '';
     this.init(input);
   }
 
@@ -161,6 +159,7 @@ class Lexer extends Handlers {
    */
 
   match(regex) {
+    assert.equal(typeOf(regex), 'regexp', 'expected a regular expression');
     if (regex.validated !== true) {
       assert(/^\^/.test(regex.source), 'expected regex to start with "^"');
       regex.validated = true;
@@ -203,9 +202,9 @@ class Lexer extends Handlers {
    */
 
   scan(regex, type) {
-    const match = this.match(regex);
-    if (!match) return;
     try {
+      const match = this.match(regex);
+      if (!match) return;
       const token = this.token(type, match);
       this.emit('scan', token);
       return token;
@@ -540,8 +539,12 @@ class Lexer extends Handlers {
 
   append(value, enqueue) {
     if (!value) return;
+    if (this.stash.last === '') {
+      this.stash[this.stash.length - 1] += value;
+    } else {
+      this.stash.push(value);
+    }
     this.emit('append', value);
-    this.stash.push(value);
     return this;
   }
 
@@ -673,7 +676,7 @@ class Lexer extends Handlers {
 
   error(err) {
     if (typeof err === 'string') err = new Error(err);
-    if (this.emit && this.hasListeners('error')) {
+    if (this.hasListeners('error')) {
       this.emit('error', err);
     } else {
       throw err;
@@ -688,7 +691,9 @@ class Lexer extends Handlers {
 
   fail() {
     if (this.stack.length) {
-      this.error(new Error(`unclosed: "${this.stack.last.match[0]}"`));
+      const last = this.stack.last;
+      const val = last.match ? last.match[0] : last[this.options.value || 'value'];
+      this.error(new Error(`unclosed: "${val}"`));
     }
     if (this.string) {
       this.error(new Error(`unmatched input: "${this.string[0]}"`));
@@ -790,11 +795,11 @@ class Lexer extends Handlers {
 };
 
 function arrayify(value) {
-  return value != null ? (Array.isArray(value) ? value : [value]) : [];
+  return Array.isArray(value) ? value : [value];
 }
 
 function define(obj, key, value) {
-  Reflect.defineProperty(obj, key, {configurable: true, writable: true, value: value});
+  Reflect.defineProperty(obj, key, {configurable: false, writable: false, value: value});
 }
 
 function isString(input) {
