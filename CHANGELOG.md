@@ -35,11 +35,25 @@ Changelog entries are classified using the following labels _(from [keep-a-chang
 
 ## [2.0.0] - 2018-01-08
 
-- refactored
-
 ### Breaking changes
 
-- Renamed `token.val` to `token.value`, in an effort to make the API closer to other popular parsing libraries.
+The following changes were made in an effort to make the API closer to other popular parsing libraries, such as babel and acorn. 
+
+- Renamed `token.val` to `token.value` 
+- `lexer.loc.column` was changed from a 1-index number to a 0-index number
+- `.current` is now a property set by the `.handle()` method. The value of `lexer.current` is whatever is returned by a handler.
+- `.prev()` now returns the previously lexed token
+- `.push()`
+
+## Added
+
+- If `lexer.options.mode` is set to `character`, `lexer.advance()` will consume and return a single character each time it's called, instead of iterating over the handlers.
+- the `token.match` array is now decorated with a `.consumed` property, which is the value of `lexer.consumed` _before_ the match was created.
+- adds `lexer.stack` for tracking opening/closing structures
+- adds `lexer.stash` for storing an array of strings (in addition to `lexer.tokens`, which stores objects)
+- adds `.append`
+- adds `.skipWhile`
+- adds `.skipSpaces`
 
 ## [1.0.0] - 2017-11-30
 

@@ -17,7 +17,7 @@
     "node": ">=6"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "nyc mocha"
   },
   "dependencies": {
     "snapdragon-handlers": "^1.0.0",
@@ -28,6 +28,7 @@
     "define-property": "^2.0.0",
     "gulp-format-md": "^1.0.0",
     "mocha": "^4.0.1",
+    "nyc": "^11.4.1",
     "snapdragon-position": "^2.0.2"
   },
   "keywords": [
@@ -43,8 +44,14 @@
     "tokenizer",
     "transform"
   ],
+  "nyc": {
+    "reporter": [
+      "lcov",
+      "text-summary"
+    ]
+  },
   "verb": {
-    "toc": false,
+    "toc": "collapsible",
     "layout": "default",
     "tasks": [
       "readme"
@@ -64,7 +71,9 @@
     },
     "reflinks": [
       "snapdragon-position",
-      "snapdragon-token"
+      "snapdragon-token",
+      "snapdragon-location",
+      "snapdragon-parser"
     ]
   }
 }
