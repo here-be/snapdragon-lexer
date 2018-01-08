@@ -20,6 +20,7 @@
     "test": "nyc mocha"
   },
   "dependencies": {
+    "kind-of": "^6.0.2",
     "snapdragon-handlers": "^1.0.0",
     "snapdragon-stack": "^1.0.1",
     "snapdragon-token": "^3.0.1"
@@ -27,7 +28,7 @@
   "devDependencies": {
     "define-property": "^2.0.0",
     "gulp-format-md": "^1.0.0",
-    "mocha": "^4.0.1",
+    "mocha": "^3.5.3",
     "nyc": "^11.4.1",
     "snapdragon-position": "^2.0.2"
   },

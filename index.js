@@ -27,9 +27,9 @@ let Token = require('snapdragon-token');
 class Lexer extends Handlers {
   constructor(input, options) {
     if (typeof input !== 'string') {
-      return new Lexer('', input);
+      options = input;
+      input = '';
     }
-
     super(options);
     if (Lexer.isLexer(options)) {
       return this.create(options.options, options);
