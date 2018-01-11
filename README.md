@@ -283,7 +283,7 @@ lexer.enqueue(new Token('star', '*'));
 console.log(lexer.queue.length); // 1
 ```
 
-### [.dequeue](index.js#L365)
+### [.dequeue](index.js#L366)
 
 Shift a token from `lexer.queue`.
 
@@ -297,7 +297,7 @@ lexer.dequeue();
 console.log(lexer.queue.length); // 0
 ```
 
-### [.lookbehind](index.js#L381)
+### [.lookbehind](index.js#L382)
 
 Lookbehind `n` tokens.
 
@@ -312,7 +312,7 @@ Lookbehind `n` tokens.
 const token = lexer.lookbehind(2);
 ```
 
-### [.prev](index.js#L397)
+### [.prev](index.js#L398)
 
 Get the previous token.
 
@@ -324,7 +324,7 @@ Get the previous token.
 const token = lexer.prev();
 ```
 
-### [.lookahead](index.js#L415)
+### [.lookahead](index.js#L416)
 
 Lookahead `n` tokens and return the last token. Pushes any intermediate tokens onto `lexer.tokens.` To lookahead a single token, use [.peek()](#peek).
 
@@ -339,7 +339,7 @@ Lookahead `n` tokens and return the last token. Pushes any intermediate tokens o
 const token = lexer.lookahead(2);
 ```
 
-### [.peek](index.js#L433)
+### [.peek](index.js#L434)
 
 Lookahead a single token.
 
@@ -351,7 +351,7 @@ Lookahead a single token.
 const token = lexer.peek();
 ```
 
-### [.next](index.js#L448)
+### [.next](index.js#L449)
 
 Get the next token, either from the `queue` or by [advancing](#advance).
 
@@ -363,7 +363,7 @@ Get the next token, either from the `queue` or by [advancing](#advance).
 const token = lexer.next();
 ```
 
-### [.skip](index.js#L464)
+### [.skip](index.js#L465)
 
 Skip `n` tokens or characters in the string. Skipped values are not enqueued.
 
@@ -378,7 +378,7 @@ Skip `n` tokens or characters in the string. Skipped values are not enqueued.
 const token = lexer.skip(1);
 ```
 
-### [.skipType](index.js#L481)
+### [.skipType](index.js#L482)
 
 Skip the given token `types`.
 
@@ -393,7 +393,7 @@ Skip the given token `types`.
 lexer.skipWhile(tok => tok.type !== 'space');
 ```
 
-### [.skipType](index.js#L500)
+### [.skipType](index.js#L501)
 
 Skip the given token `types`.
 
@@ -409,7 +409,7 @@ lexer.skipType('space');
 lexer.skipType(['newline', 'space']);
 ```
 
-### [.skipSpaces](index.js#L515)
+### [.skipSpaces](index.js#L516)
 
 Consume spaces.
 
@@ -421,7 +421,7 @@ Consume spaces.
 lexer.skipSpaces();
 ```
 
-### [.append](index.js#L540)
+### [.append](index.js#L541)
 
 Pushes the given `value` onto `lexer.stash`.
 
@@ -446,7 +446,7 @@ console.log(lexer.stash);
 //=> ['abc', '/', '*', '.', 'js']
 ```
 
-### [.push](index.js#L569)
+### [.push](index.js#L570)
 
 Pushes the given `token` onto `lexer.tokens` and calls [.append()](#append) to push `token.value` onto `lexer.stash`. Disable pushing onto the stash by setting `lexer.options.append` or `token.append` to `false`.
 
@@ -468,22 +468,7 @@ console.log(lexer.tokens.length); // 1
 console.log(lexer.stash) // ['*']
 ```
 
-### [.last](index.js#L596)
-
-Get the last value in the given array.
-
-**Params**
-
-* `array` **{Array}**
-* `returns` **{any}**
-
-**Example**
-
-```js
-console.log(lexer.last(lexer.tokens));
-```
-
-### [.isInside](index.js#L614)
+### [.isInside](index.js#L599)
 
 Returns true if a token with the given `type` is on the stack.
 
@@ -500,14 +485,14 @@ if (lexer.isInside('bracket') || lexer.isInside('brace')) {
 }
 ```
 
-### [.value](index.js#L627)
+### [.value](index.js#L613)
 
 Returns the value of a token using the property defined on `lexer.options.value`
 or `token.value`.
 
 * `returns` **{String|undefined}**
 
-### [.eos](index.js#L639)
+### [.eos](index.js#L625)
 
 Returns true if `lexer.string` and `lexer.queue` are empty.
 
@@ -522,7 +507,7 @@ the handlers from the current instance to the new instance.
 * `parent` **{Object}**: Optionally pass a different lexer instance to copy handlers from.
 * `returns` **{Object}**: Returns a new Lexer instance
 
-### [.error](index.js#L677)
+### [.error](index.js#L663)
 
 Throw a formatted error message with details including the cursor position.
 
@@ -542,7 +527,7 @@ lexer.set('foo', function(tok) {
 });
 ```
 
-### [Lexer#isLexer](index.js#L740)
+### [Lexer#isLexer](index.js#L726)
 
 Static method that returns true if the given value is an instance of `snapdragon-lexer`.
 
@@ -560,16 +545,16 @@ console.log(Lexer.isLexer(lexer)); //=> true
 console.log(Lexer.isLexer({})); //=> false
 ```
 
-### [Lexer#Stack](index.js#L752)
+### [Lexer#Stack](index.js#L738)
 
 Static method for getting or setting the `Stack` constructor.
 
-### [Lexer#Token](index.js#L768)
+### [Lexer#Token](index.js#L754)
 
 Static method for getting or setting the `Token` constructor, used
 by `lexer.token()` to create a new token.
 
-### [Lexer#isToken](index.js#L792)
+### [Lexer#isToken](index.js#L778)
 
 Static method that returns true if the given value is an instance of `snapdragon-token`. This is a proxy to `Token#isToken`.
 
@@ -670,7 +655,7 @@ Array of lexed tokens.
 
 Type: **{array}**
 
-Default: `['']`
+Default: `['']` (instance of [snapdragon-stack](https://github.com/here-be/snapdragon-stack))
 
 Array of captured strings. Similar to the [lexer.tokens](#lexertokens) array, but stores strings instead of token objects.
 
@@ -826,4 +811,4 @@ Released under the [MIT License](LICENSE).
 
 ***
 
-_This file was generated by [verb-generate-readme](https://github.com/verbose/verb-generate-readme), v0.6.0, on January 08, 2018._
+_This file was generated by [verb-generate-readme](https://github.com/verbose/verb-generate-readme), v0.6.0, on January 11, 2018._
