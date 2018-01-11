@@ -345,7 +345,8 @@ class Lexer extends Handlers {
    */
 
   enqueue(token) {
-    if (token) this.queue.push(token);
+    if (!token) return;
+    this.queue.push(token);
     return token;
   }
 
@@ -539,7 +540,7 @@ class Lexer extends Handlers {
 
   append(value, enqueue) {
     if (!value) return;
-    if (this.stash.last === '') {
+    if (this.stash.last() === '') {
       this.stash[this.stash.length - 1] += value;
     } else {
       this.stash.push(value);
@@ -582,22 +583,6 @@ class Lexer extends Handlers {
   }
 
   /**
-   * Get the last value in the given array.
-   *
-   * ```js
-   * console.log(lexer.last(lexer.tokens));
-   * ```
-   * @name .last
-   * @param {Array} `array`
-   * @returns {any}
-   * @api public
-   */
-
-  last(array) {
-    return Array.isArray(array) ? array[array.length - 1] : null;
-  }
-
-  /**
    * Returns true if a token with the given `type` is on the stack.
    *
    * ```js
@@ -612,7 +597,8 @@ class Lexer extends Handlers {
    */
 
   isInside(type) {
-    return this.isToken(this.stack.last) && this.stack.last.type === type;
+    const last = this.stack.last();
+    return this.isToken(last) && last.type === type;
   }
 
   /**
@@ -691,7 +677,7 @@ class Lexer extends Handlers {
 
   fail() {
     if (this.stack.length) {
-      const last = this.stack.last;
+      const last = this.stack.last();
       const val = last.match ? last.match[0] : last[this.options.value || 'value'];
       this.error(new Error(`unclosed: "${val}"`));
     }

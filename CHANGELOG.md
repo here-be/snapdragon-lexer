@@ -33,6 +33,13 @@ Changelog entries are classified using the following labels _(from [keep-a-chang
 </details>
 
 
+## [3.0.0] - 2018-01-11
+
+### Breaking changes
+
+- removed `lexer.last()`
+- bumped [snapdragon-stack](https://github.com/here-be/snapdragon-stack), which has replaced all getters with methods that must be called.
+
 ## [2.0.0] - 2018-01-08
 
 ### Breaking changes
@@ -62,6 +69,7 @@ The following changes were made in an effort to make the API closer to other pop
 - add examples
 - update metadata and urls
 
+[3.0.0]: https://github.com/here-be/snapdragon-lexer/compare/3.0.0...2.0.0
 [2.0.0]: https://github.com/here-be/snapdragon-lexer/compare/2.0.0...1.0.0
 [1.0.0]: https://github.com/here-be/snapdragon-lexer/compare/1.0.0...0.1.0
 [keep-a-changelog]: https://github.com/olivierlacan/keep-a-changelog
