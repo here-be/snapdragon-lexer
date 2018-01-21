@@ -22,7 +22,7 @@
   "dependencies": {
     "kind-of": "^6.0.2",
     "snapdragon-handlers": "^1.0.0",
-    "snapdragon-stack": "^2.0.0",
+    "snapdragon-stack": "^2.1.0",
     "snapdragon-token": "^3.0.1"
   },
   "devDependencies": {

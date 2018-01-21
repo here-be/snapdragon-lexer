@@ -50,10 +50,16 @@ class Lexer extends Handlers {
     if (!input && isString(this.options.source)) {
       return this.init(fs.readFileSync(this.options.source));
     }
+
     this.consumed = '';
     this.tokens = new this.Stack();
-    this.stash = new this.Stack('');
     this.stack = new this.Stack();
+    this.stash = new this.Stack('');
+
+    define(this.stash, 'append', function(val) {
+      this[this.length - 1] += val;
+    });
+
     this.queue = [];
     this.loc = {
       index: 0,
@@ -129,10 +135,11 @@ class Lexer extends Handlers {
   /**
    * Update column and line number based on `value`.
    * @param {String} `value`
-   * @return {Object} returns the instance for chaining.
+   * @return {undefined}
    */
 
   updateLocation(value, len) {
+    if (typeof len !== 'number') len = value.length;
     const i = value.lastIndexOf('\n');
     this.loc.column = ~i ? len - i : this.loc.column + len;
     this.loc.line += Math.max(0, value.split('\n').length - 1);
@@ -140,11 +147,10 @@ class Lexer extends Handlers {
   }
 
   /**
-   * Capture a substring from `lexer.string` with the given `regex`. Also
-   * validates the regex to ensure that it starts with `^` since matching
-   * should always be against the beginning of the string, and throws if
-   * the regex matches an empty string, which can cause catastrophic
-   * backtracking in some cases.
+   * Use the given `regex` to match a substring from `lexer.string`. Also validates
+   * the regex to ensure that it starts with `^` since matching should always be
+   * against the beginning of the string, and throws if the regex matches an empty
+   * string, which can cause catastrophic backtracking.
    *
    * ```js
    * const lexer = new Lexer('foo/bar');
@@ -154,7 +160,7 @@ class Lexer extends Handlers {
    * ```
    * @name .match
    * @param {RegExp} `regex` (required)
-   * @return {Array} Returns the match arguments from `RegExp.exec` or null.
+   * @return {Array|null} Returns the match array from `RegExp.exec` or null.
    * @api public
    */
 
@@ -167,12 +173,13 @@ class Lexer extends Handlers {
 
     const consumed = this.consumed;
     const match = regex.exec(this.string);
-    if (!match) return;
+    if (!match) return null;
+
     if (match[0] === '') {
       throw new SyntaxError('regex should not match an empty string');
     }
 
-    match.consumed = consumed;
+    define(match, 'consumed', consumed);
     this.consume(match[0].length, match[0]);
     return match;
   }
@@ -296,10 +303,12 @@ class Lexer extends Handlers {
     if (this.options.mode === 'character') {
       return (this.current = this.consume(1));
     }
+
     for (const type of this.types) {
       const token = this.handle(type);
       if (token) return token;
     }
+
     this.fail();
   }
 
@@ -380,8 +389,7 @@ class Lexer extends Handlers {
    */
 
   lookbehind(n) {
-    assert.equal(typeof n, 'number', 'expected a number');
-    return this.tokens[this.tokens.length - n];
+    return this.tokens.lookbehind(n);
   }
 
   /**
@@ -481,8 +489,24 @@ class Lexer extends Handlers {
 
   skipWhile(fn) {
     const skipped = [];
-    while (fn.call(this, this.peek())) skipped.push(this.dequeue());
+    while (fn.call(this, this.peek())) skipped.push(this.next());
     return skipped;
+  }
+
+  /**
+   * Skip the given token `types`.
+   *
+   * ```js
+   * lexer.skipWhile(tok => tok.type !== 'space');
+   * ```
+   * @name .skipType
+   * @param {String|Array} `types` One or more token types to skip.
+   * @returns {Array} Returns an array if skipped tokens.
+   * @api public
+   */
+
+  skipTo(type) {
+    return this.skipWhile(tok => tok.type !== type).concat(this.next());
   }
 
   /**
@@ -500,23 +524,6 @@ class Lexer extends Handlers {
 
   skipType(types) {
     return this.skipWhile(tok => ~arrayify(types).indexOf(tok.type));
-  }
-
-  /**
-   * Consume spaces.
-   *
-   * ```js
-   * lexer.skipSpaces();
-   * ```
-   * @name .skipSpaces
-   * @returns {String} Returned the skipped string.
-   * @api public
-   */
-
-  skipSpaces() {
-    let skipped = '';
-    while (this.string[0] === ' ') skipped += this.consume(1);
-    return skipped;
   }
 
   /**
@@ -541,7 +548,7 @@ class Lexer extends Handlers {
   append(value, enqueue) {
     if (!value) return;
     if (this.stash.last() === '') {
-      this.stash[this.stash.length - 1] += value;
+      this.stash.append(value);
     } else {
       this.stash.push(value);
     }
@@ -682,7 +689,7 @@ class Lexer extends Handlers {
       this.error(new Error(`unclosed: "${val}"`));
     }
     if (this.string) {
-      this.error(new Error(`unmatched input: "${this.string[0]}"`));
+      this.error(new Error(`unmatched input: "${this.string.slice(0, 10)}"`));
     }
   }
 
@@ -785,7 +792,7 @@ function arrayify(value) {
 }
 
 function define(obj, key, value) {
-  Reflect.defineProperty(obj, key, {configurable: false, writable: false, value: value});
+  Reflect.defineProperty(obj, key, { configurable: false, writable: false, value: value });
 }
 
 function isString(input) {

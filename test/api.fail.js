@@ -28,7 +28,7 @@ describe('api.fail', function() {
     lexer.string = 'foo';
     assert.throws(function() {
       lexer.fail();
-    }, /unmatched input: "f"/);
+    }, /unmatched input: "foo"/);
   });
 
   it('should not fail when lexer.string is empty', function() {
