@@ -14,16 +14,16 @@ describe('api.integration', function() {
     lexer.capture('text', /^\w+/);
     lexer.capture('star', /^\*/);
 
-    assert.equal(typeof lexer.handlers.text, 'function');
-    assert.equal(typeof lexer.handlers.star, 'function');
+    assert.equal(typeof lexer.handlers.get('text'), 'function');
+    assert.equal(typeof lexer.handlers.get('star'), 'function');
   });
 
   it('should register a handler when a function is passed', function() {
     lexer.capture('text', /^\w+/, function() {});
     lexer.capture('star', /^\*/, function() {});
 
-    assert.equal(typeof lexer.handlers.text, 'function');
-    assert.equal(typeof lexer.handlers.star, 'function');
+    assert.equal(typeof lexer.handlers.get('text'), 'function');
+    assert.equal(typeof lexer.handlers.get('star'), 'function');
   });
 
   it('should expose the captured token to the given function', function() {

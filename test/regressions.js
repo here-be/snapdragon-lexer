@@ -2,14 +2,12 @@
 
 require('mocha');
 const assert = require('assert');
-const position = require('snapdragon-position');
 const Lexer = require('..');
 let lexer;
 
 describe('api.regressions', function() {
   beforeEach(function() {
     lexer = new Lexer();
-    lexer.use(position());
   });
 
   describe('constructor:', function() {
@@ -24,7 +22,7 @@ describe('api.regressions', function() {
       'get',
       'match',
       'next',
-      'position',
+      'location',
       'prev',
       'set',
       'skip',

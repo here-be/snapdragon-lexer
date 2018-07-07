@@ -11,7 +11,7 @@ describe('api.token', function() {
   });
 
   it('should return an instance of lexer.Token', function() {
-    assert(lexer.token('foo') instanceof lexer.Token);
+    assert(lexer.token('foo') instanceof Lexer.Token);
   });
 
   it('should create a token from a string', function() {
@@ -54,7 +54,7 @@ describe('api.token', function() {
     lexer.capture('star', /^\*/);
     lexer.on('token', (tok) => tokens.push(tok));
 
-    lexer.tokenize('a/*/b');
+    lexer.lex('a/*/b');
     assert.equal(tokens.length, 5);
   });
 });

@@ -5,7 +5,7 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.handlers', function() {
+describe('lexer.handlers', function() {
   beforeEach(function() {
     lexer = new Lexer();
   });
@@ -15,8 +15,8 @@ describe('api.handlers', function() {
       lexer.set('word', function() {});
       lexer.set('star', function() {});
 
-      assert.equal(typeof lexer.handlers.word, 'function');
-      assert.equal(typeof lexer.handlers.star, 'function');
+      assert.equal(typeof lexer.handlers.get('word'), 'function');
+      assert.equal(typeof lexer.handlers.get('star'), 'function');
     });
 
     it('should expose the lexer instance to registered handler', function() {
@@ -27,7 +27,7 @@ describe('api.handlers', function() {
         assert(lexer === this, 'expected "this" to be an instance of Lexer');
       });
 
-      lexer.handlers.word();
+      lexer.handlers.get('word')();
       assert.equal(count, 1);
     });
   });

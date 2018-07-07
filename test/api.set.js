@@ -12,7 +12,7 @@ describe('api.set', function() {
 
   it('should set a handler function on lexer.handlers', function() {
     lexer.set('star', () => {});
-    assert.equal(typeof lexer.handlers.star, 'function');
+    assert.equal(typeof lexer.handlers.get('star'), 'function');
   });
 
   it('should call the registered handler function', function() {
