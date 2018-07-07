@@ -21,6 +21,6 @@ describe('api.skip', function() {
 
   it('should not add the next (peeked) token to the queue', function() {
     lexer.skip(2);
-    assert.equal(lexer.queue.length, 1);
+    assert.equal(lexer.state.queue.length, 1);
   });
 });

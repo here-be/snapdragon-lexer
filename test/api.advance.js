@@ -33,9 +33,7 @@ describe('api.advance', function() {
 
   it('should fail when a match is not found', function() {
     lexer.string = 'foo/*';
-    assert.throws(function() {
-      lexer.advance();
-    }, /unmatched/);
+    assert.throws(() => lexer.advance(), /unmatched/);
   });
 
   it('should advance in character mode', function() {

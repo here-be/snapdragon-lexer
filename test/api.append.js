@@ -10,18 +10,28 @@ describe('api.append', function() {
     lexer = new Lexer();
   });
 
-  it('should do nothing when the value is falsey', function() {
-    lexer.append('');
+  it('should do nothing when the value is not a string', function() {
     lexer.append();
     lexer.append(null);
     lexer.append(false);
-    assert.deepEqual(lexer.stash, ['']);
+    assert.deepEqual(lexer.state.stash, ['']);
   });
 
-  it('should push token values onto "lexer.stash"', function() {
+  it('should not push empty strings onto the stash', function() {
+    lexer.append('');
+    lexer.append('');
+    lexer.append('');
+    assert.deepEqual(lexer.state.stash, ['']);
+  });
+
+  it('should append non-empty strings to the last value on the stash', function() {
+    lexer.append('foo');
+    lexer.append('');
+    lexer.append('/');
+    lexer.append('');
     lexer.append('*');
     lexer.append('.');
     lexer.append('js');
-    assert.deepEqual(lexer.stash, ['*', '.', 'js']);
+    assert.deepEqual(lexer.state.stash, ['foo', '/', '*', '.', 'js']);
   });
 });

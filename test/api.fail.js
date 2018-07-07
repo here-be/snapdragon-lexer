@@ -10,31 +10,23 @@ describe('api.fail', function() {
     lexer = new Lexer();
   });
 
-  it('should fail when lexer.stack is not empty', function() {
-    lexer.stack.push(lexer.token('brace.open', '{'));
-    assert.throws(function() {
-      lexer.fail();
-    }, /unclosed: "\{"/);
+  it('should fail when lexer.state.stack is not empty', function() {
+    lexer.state.stack.push(lexer.token('brace.open', '{'));
+    assert.throws(() => lexer.fail(), /unclosed: "\{"/);
   });
 
   it('should show token.match[0] in error message, when defined', function() {
-    lexer.stack.push(lexer.token('brace.open', '{', ['{']));
-    assert.throws(function() {
-      lexer.fail();
-    }, /unclosed: "\{"/);
+    lexer.state.stack.push(lexer.token('brace.open', '{', ['{']));
+    assert.throws(() => lexer.fail(), /unclosed: "\{"/);
   });
 
   it('should fail when lexer.string is not empty', function() {
     lexer.string = 'foo';
-    assert.throws(function() {
-      lexer.fail();
-    }, /unmatched input: "foo"/);
+    assert.throws(() => lexer.fail(), /unmatched input: "foo"/);
   });
 
   it('should not fail when lexer.string is empty', function() {
     lexer.string = '';
-    assert.doesNotThrow(function() {
-      lexer.fail();
-    });
+    assert.doesNotThrow(() => lexer.fail());
   });
 });

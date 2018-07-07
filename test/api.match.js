@@ -2,6 +2,7 @@
 
 require('mocha');
 const assert = require('assert');
+const State = require('../lib/state');
 const Lexer = require('..');
 let lexer;
 
@@ -37,21 +38,21 @@ describe('api.match', function() {
   });
 
   it('should skip spaces', function() {
-    lexer.init('foo   bar');
+    lexer.state = new State('foo   bar');
     assert.equal(lexer.advance().type, 'text');
     assert.equal(lexer.match(/^[\t ]+/), '   ');
     assert.equal(lexer.advance().type, 'text');
   });
 
   it('should skip tabs and spaces', function() {
-    lexer.init('foo \t \t bar');
+    lexer.state = new State('foo \t \t bar');
     assert.equal(lexer.advance().type, 'text');
     assert.equal(lexer.match(/^[\t ]+/), ' \t \t ');
     assert.equal(lexer.advance().type, 'text');
   });
 
   it('should not skip newlines', function() {
-    lexer.init('foo \t \n  bar');
+    lexer.state = new State('foo \t \n  bar');
     assert.equal(lexer.advance().type, 'text');
     assert.equal(lexer.match(/^[\t ]+/), ' \t ');
     assert.equal(lexer.advance().type, 'newline');

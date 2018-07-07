@@ -10,13 +10,13 @@ describe('api.isInside', function() {
     lexer = new Lexer();
   });
 
-  it('should be true when type matches the last token on lexer.stack', function() {
-    lexer.stack.push(lexer.token('foo'));
+  it('should be true when type matches the last token on lexer.state.stack', function() {
+    lexer.state.stack.push(lexer.token('foo'));
     assert(lexer.isInside('foo'));
   });
 
-  it('should be false when type does not match last token on lexer.stack', function() {
-    lexer.stack.push(lexer.token('foo'));
+  it('should be false when type does not match last token on lexer.state.stack', function() {
+    lexer.state.stack.push(lexer.token('foo'));
     assert(!lexer.isInside('bar'));
   });
 });

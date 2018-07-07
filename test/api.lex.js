@@ -22,6 +22,8 @@ describe('lexer.lex', function() {
   it('should lex the string passed to the constructor', function() {
     lexer = new Lexer('abcd');
     lexer.capture('text', /^\w/);
+    assert.equal(lexer.state.input, 'abcd');
+
     const tokens = lexer.lex();
     assert(Array.isArray(tokens));
     assert(tokens.length, 4);
@@ -131,7 +133,7 @@ describe('lexer.lex', function() {
 
     lexer.lex('abc\nmno\nxyx');
 
-    const tokens = lexer.tokens;
+    const tokens = lexer.state.tokens;
     assert.equal(tokens[0].type, 'text');
     assert.equal(tokens[1].type, 'newline');
     assert.equal(tokens[2].type, 'text');

@@ -27,45 +27,45 @@ describe('api.peek', function() {
     assert.equal(lexer.consumed, '/');
   });
 
-  it('should add the captured token to lexer.queue', function() {
+  it('should add the captured token to lexer.state.queue', function() {
     var tok = lexer.peek();
-    assert.equal(lexer.queue.length, 1);
-    assert.equal(lexer.queue[0], tok);
+    assert.equal(lexer.state.queue.length, 1);
+    assert.equal(lexer.state.queue[0], tok);
   });
 
   it('should not consume more input if a token is enqueued', function() {
     lexer.peek();
     assert.equal(lexer.consumed, '/');
-    assert.equal(lexer.queue.length, 1);
+    assert.equal(lexer.state.queue.length, 1);
 
     lexer.peek();
     assert.equal(lexer.consumed, '/');
-    assert.equal(lexer.queue.length, 1);
+    assert.equal(lexer.state.queue.length, 1);
 
     lexer.peek();
     assert.equal(lexer.consumed, '/');
-    assert.equal(lexer.queue.length, 1);
+    assert.equal(lexer.state.queue.length, 1);
   });
 
-  it('should get the next token when lexer.queue is empty', function() {
+  it('should get the next token when lexer.state.queue is empty', function() {
     lexer.peek();
     assert.equal(lexer.consumed, '/');
-    assert.equal(lexer.queue.length, 1);
-    lexer.queue = [];
+    assert.equal(lexer.state.queue.length, 1);
+    lexer.state.queue = [];
 
     lexer.peek();
     assert.equal(lexer.consumed, '//');
-    assert.equal(lexer.queue.length, 1);
-    lexer.queue = [];
+    assert.equal(lexer.state.queue.length, 1);
+    lexer.state.queue = [];
 
     lexer.peek();
     assert.equal(lexer.consumed, '//foo');
-    assert.equal(lexer.queue.length, 1);
-    lexer.queue = [];
+    assert.equal(lexer.state.queue.length, 1);
+    lexer.state.queue = [];
 
     lexer.peek();
     assert.equal(lexer.consumed, '//foo/');
-    assert.equal(lexer.queue.length, 1);
-    lexer.queue = [];
+    assert.equal(lexer.state.queue.length, 1);
+    lexer.state.queue = [];
   });
 });

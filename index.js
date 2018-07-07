@@ -2,7 +2,7 @@
 
 const Events = require('events');
 const assert = require('assert');
-const Stack = require('./lib/stack');
+const State = require('./lib/state');
 const Token = require('./lib/token');
 const Location = require('./lib/location');
 
@@ -22,35 +22,9 @@ const Location = require('./lib/location');
 class Lexer extends Events {
   constructor(input, options) {
     super();
-    if (typeof input !== 'string') {
-      options = input;
-      input = '';
-    }
-    this.options = options || {};
-    this.handlers = new Map();
     this.types = new Set();
-    this.init(input);
-  }
-
-  /**
-   * Reset lexer instance properties.
-   */
-
-  init(input = (this.input || '')) {
-    this.stash = new Stack('');
-    this.indent = new Stack('');
-    this.output = new Stack('');
-    this.tokens = new Stack();
-    this.queue = new Stack();
-    this.stack = new Stack();
-    this.consumed = ''; // consumed part of the input string
-    this.input = input; // unmodified user-defined input string
-    this.string = input; // input string, minus consumed
-    this.loc = {
-      index: 0,
-      column: 0,
-      line: 1
-    };
+    this.handlers = new Map();
+    this.state = new State(input, options);
   }
 
   /**
@@ -63,7 +37,7 @@ class Lexer extends Events {
    */
 
   bos() {
-    return !this.consumed;
+    return !this.state.consumed;
   }
 
   /**
@@ -75,7 +49,7 @@ class Lexer extends Events {
    */
 
   eos() {
-    return this.string === '' && this.queue.length === 0;
+    return this.state.string === '' && this.state.queue.length === 0;
   }
 
   /**
@@ -211,9 +185,9 @@ class Lexer extends Events {
    * @api public
    */
 
-  consume(len, value = this.string.slice(0, len)) {
-    this.consumed += value;
-    this.string = this.string.slice(len);
+  consume(len, value = this.state.string.slice(0, len)) {
+    this.state.consumed += value;
+    this.state.string = this.state.string.slice(len);
     this.updateLocation(value, len);
     return value;
   }
@@ -227,9 +201,9 @@ class Lexer extends Events {
 
   updateLocation(value, len = value.length) {
     const i = value.lastIndexOf('\n');
-    this.loc.column = ~i ? len - i : this.loc.column + len;
-    this.loc.line += Math.max(0, value.split('\n').length - 1);
-    this.loc.index += len;
+    this.state.loc.column = ~i ? len - i : this.state.loc.column + len;
+    this.state.loc.line += Math.max(0, value.split('\n').length - 1);
+    this.state.loc.index += len;
   }
 
   /**
@@ -276,8 +250,8 @@ class Lexer extends Events {
       regex.validated = true;
     }
 
-    const consumed = this.consumed;
-    const match = regex.exec(this.string);
+    let consumed = this.state.consumed;
+    let match = regex.exec(this.state.string);
     if (!match) return null;
 
     if (match[0] === '') {
@@ -351,7 +325,7 @@ class Lexer extends Events {
    */
 
   capture(type, regex, fn) {
-    const handler = function() {
+    let handler = function() {
       let token = this.scan(regex, type);
       if (token) {
         return fn ? fn.call(this, token) : token;
@@ -406,11 +380,10 @@ class Lexer extends Events {
    */
 
   advance() {
-    if (!this.string) return;
+    if (this.eos()) return;
     if (this.options.mode === 'character') {
       return (this.current = this.consume(1));
     }
-
     for (const type of this.types) {
       let token = this.handle(type);
       if (token) {
@@ -441,11 +414,12 @@ class Lexer extends Events {
    * @api public
    */
 
-  lex(input) {
-    this.init(input);
+  lex(input, options) {
+    if (input) this.state = new State(input, options);
     while (this.push(this.next()));
-    return this.tokens;
+    return this.state.tokens;
   }
+
   tokenize(...args) {
     return this.lex(...args);
   }
@@ -465,8 +439,7 @@ class Lexer extends Events {
    */
 
   enqueue(token) {
-    if (!token) return;
-    this.queue.push(token);
+    token && this.state.queue.push(token);
     return token;
   }
 
@@ -484,7 +457,7 @@ class Lexer extends Events {
    */
 
   dequeue() {
-    return this.queue.length && this.queue.shift();
+    return this.state.queue.length && this.state.queue.shift();
   }
 
   /**
@@ -499,23 +472,23 @@ class Lexer extends Events {
    * @api public
    */
 
-  lookbehind(n, to) {
-    assert.equal(typeof n, 'number', 'expected a number');
-    return this.tokens[this.tokens.length - n];
+  lookbehind(n) {
+    assert(Number.isInteger(n), 'expected a positive integer');
+    return this.state.tokens[this.state.tokens.length - n];
   }
 
   /**
-   * Get the previous token.
+   * Get the last token on the tokens array.
    *
    * ```js
-   * const token = lexer.prev();
+   * const token = lexer.last();
    * ```
-   * @name .prev
-   * @returns {Object} Returns a token.
+   * @name .last
+   * @returns {Object|undefined} Returns a token or undefined.
    * @api public
    */
 
-  prev() {
+  last() {
     return this.lookbehind(1);
   }
 
@@ -534,10 +507,10 @@ class Lexer extends Events {
    */
 
   lookahead(n) {
-    assert.equal(typeof n, 'number', 'expected a number');
-    let fetch = n - this.queue.length;
+    assert(Number.isInteger(n), 'expected a positive integer');
+    let fetch = n - this.state.queue.length;
     while (fetch-- > 0 && this.enqueue(this.advance()));
-    return this.queue[--n];
+    return this.state.queue[--n];
   }
 
   /**
@@ -639,41 +612,6 @@ class Lexer extends Events {
   }
 
   /**
-   * Pushes the given `value` onto `lexer.stash`.
-   *
-   * ```js
-   * lexer.append('abc');
-   * lexer.append('/');
-   * lexer.append('*');
-   * lexer.append('.');
-   * lexer.append('js');
-   * console.log(lexer.stash);
-   * //=> ['abc', '/', '*', '.', 'js']
-   * ```
-   * @name .append
-   * @emits append
-   * @param {any} `value`
-   * @return {Object} Returns the Lexer instance.
-   * @api public
-   */
-
-  append(value) {
-    if (!value) return;
-    this.stash[this.stash.last() === '' ? 'append' : 'push'](value);
-    this.emit('append', value);
-    return this;
-  }
-
-  enstash(value) {
-    this.stash.push(value);
-    return this;
-  }
-
-  unstash() {
-    return this.stash.length && this.stash.shift();
-  }
-
-  /**
    * Pushes the given `token` onto `lexer.tokens` and calls [.append()](#append) to push
    * `token.value` onto `lexer.stash`. Disable pushing onto the stash by setting
    * `lexer.options.append` or `token.append` to `false`.
@@ -692,18 +630,56 @@ class Lexer extends Events {
    */
 
   push(token) {
-    if (!token) return;
+    if (!token && token !== '') return;
     if (this.options.mode !== 'character') {
       assert(this.isToken(token), 'expected token to be an instance of Token');
     }
 
     this.emit('push', token);
-    this.tokens.push(token);
+    this.state.tokens.push(token);
 
-    if (token.value && this.options.append !== false && token.append !== false) {
+    if (this.options.stash === false || token.stash === false) {
+      return token;
+    }
+
+    if (this.options.mode === 'character') {
+      this.append(token);
+    } else {
       this.append(token.value);
     }
     return token;
+  }
+
+  /**
+   * Append a string to the last element on `lexer.stash`, or push the
+   * string onto the stash if no elements exist.
+   *
+   * ```js
+   * const stack = new Stack();
+   * stack.push('a');
+   * stack.push('b');
+   * stack.push('c');
+   * stack.append('_foo');
+   * stack.append('_bar');
+   * console.log(stack);
+   * //=> Stack ['a', 'b', 'c_foo_bar']
+   * ```
+   * @name .append
+   * @param {String} `value`
+   * @return {String} Returns the last value in the array.
+   * @api public
+   */
+
+  append(value) {
+    if (typeof value !== 'string') return;
+    let n = this.state.stash.length - 1;
+    if (this.state.stash[n] === '') {
+      this.state.stash[n] += value;
+    } else {
+      this.state.stash.push(value);
+    }
+    this.emit('append', value);
+    return this;
   }
 
   /**
@@ -721,7 +697,7 @@ class Lexer extends Events {
    */
 
   isInside(type) {
-    return this.stack.some(tok => tok.type === type);
+    return this.state.stack.some(tok => tok.type === type);
   }
 
   /**
@@ -730,7 +706,7 @@ class Lexer extends Events {
    * ```js
    * lexer.set('foo', function(tok) {
    *   if (tok.value !== 'foo') {
-   *     throw this.error('expected token.value to be "foo"', tok);
+   *     throw this.state.error('expected token.value to be "foo"', tok);
    *   }
    * });
    * ```
@@ -757,13 +733,14 @@ class Lexer extends Events {
    */
 
   fail() {
-    if (this.stack.length) {
-      const last = this.stack.last();
-      const val = last.match ? last.match[0] : last[this.options.value || 'value'];
-      throw new Error(`unclosed: "${val}"`);
+    let token = this.state.stack.pop();
+    if (token) {
+      const match = token && token.match;
+      const value = match ? match[0] : token[this.options.value || 'value'];
+      throw new Error(`unclosed: "${value}"`);
     }
-    if (this.string) {
-      throw new Error(`unmatched input: "${this.string.slice(0, 10)}"`);
+    if (this.state.string) {
+      throw new Error(`unmatched input: "${this.state.string.slice(0, 10)}"`);
     }
   }
 
@@ -799,14 +776,60 @@ class Lexer extends Events {
     return this;
   }
 
-  set input(val) {
-    assert.equal(typeof val, 'string', 'expected input to be a string');
-    // this._input = this.string = val;
-    define(this, '_input', val);
-    this.string = val;
+  /**
+   * Get/set state.options
+   */
+
+  set options(value) {
+    this.state.options = value;
+  }
+  get options() {
+    return this.state.options;
+  }
+
+  /**
+   * Get/set state.string
+   */
+
+  set string(value) {
+    this.state.string = value;
+  }
+  get string() {
+    return this.state.string;
+  }
+
+  /**
+   * Get/set state.input
+   */
+
+  set input(value) {
+    this.state.string = value;
+    this.state.input = value;
   }
   get input() {
-    return this._input;
+    return this.state.input;
+  }
+
+  /**
+   * Get/set state.consumed
+   */
+
+  set consumed(value) {
+    this.state.consumed = value;
+  }
+  get consumed() {
+    return this.state.consumed;
+  }
+
+  /**
+   * Get/set state.current
+   */
+
+  set current(value) {
+    this.state.current = value;
+  }
+  get current() {
+    return this.state.current;
   }
 
   /**
@@ -859,11 +882,7 @@ class Lexer extends Events {
    */
 
   static get Token() {
-    return Token
-  }
-
-  static get Stack() {
-    return Stack;
+    return Token;
   }
 }
 
@@ -874,6 +893,10 @@ class Lexer extends Events {
 function isObject(val) {
   return val && typeof val === 'object' && !Array.isArray(val);
 }
+
+/**
+ * Define a non-enumerable property on `obj`
+ */
 
 function define(obj, key, value) {
   Reflect.defineProperty(obj, key, {

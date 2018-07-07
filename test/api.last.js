@@ -5,7 +5,7 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.prev', function() {
+describe('api.last', function() {
   beforeEach(function() {
     lexer = new Lexer();
     lexer.capture('dot', /^\./);
@@ -15,9 +15,9 @@ describe('api.prev', function() {
     lexer.string = '//foo/bar.com';
   });
 
-  it('should get the previous token', function() {
+  it('should get the last token on the tokens array', function() {
     lexer.tokenize('//foo/bar.com');
-    var text = lexer.prev();
+    var text = lexer.last();
     assert(text);
     assert.equal(text.type, 'text');
     assert.equal(text.value, 'com');

@@ -16,9 +16,7 @@ describe('api.lookbehind', function() {
   });
 
   it('should throw an error when the first argument is not a number', function() {
-    assert.throws(function() {
-      lexer.lookbehind();
-    });
+    assert.throws(() => lexer.lookbehind(), /expected/);
   });
 
   it('should look behind "n" tokens', function() {

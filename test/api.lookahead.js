@@ -16,9 +16,7 @@ describe('api.lookahead', function() {
   });
 
   it('should throw an error when the first argument is not a number', function() {
-    assert.throws(function() {
-      lexer.lookahead();
-    });
+    assert.throws(() => lexer.lookahead(), /expected/);
   });
 
   it('should get the next "n" tokens and return the last one', function() {
@@ -33,41 +31,41 @@ describe('api.lookahead', function() {
     assert.equal(lexer.consumed, '//foo');
   });
 
-  it('should add the captured tokens to lexer.queue', function() {
+  it('should add the captured tokens to lexer.state.queue', function() {
     var tok = lexer.lookahead(3);
-    assert.equal(lexer.queue.length, 3);
-    assert.equal(lexer.queue[2], tok);
+    assert.equal(lexer.state.queue.length, 3);
+    assert.equal(lexer.state.queue[2], tok);
   });
 
   it('should use enqueued tokens before capturing more', function() {
     lexer.lookahead(3);
     assert.equal(lexer.consumed, '//foo');
-    assert.equal(lexer.queue.length, 3);
+    assert.equal(lexer.state.queue.length, 3);
 
     lexer.lookahead(4);
     assert.equal(lexer.consumed, '//foo/');
-    assert.equal(lexer.queue.length, 4);
+    assert.equal(lexer.state.queue.length, 4);
   });
 
-  it('should get the next token when lexer.queue is empty', function() {
+  it('should get the next token when lexer.state.queue is empty', function() {
     lexer.lookahead(1);
     assert.equal(lexer.consumed, '/');
-    assert.equal(lexer.queue.length, 1);
-    lexer.queue = [];
+    assert.equal(lexer.state.queue.length, 1);
+    lexer.state.queue = [];
 
     lexer.lookahead(1);
     assert.equal(lexer.consumed, '//');
-    assert.equal(lexer.queue.length, 1);
-    lexer.queue = [];
+    assert.equal(lexer.state.queue.length, 1);
+    lexer.state.queue = [];
 
     lexer.lookahead(1);
     assert.equal(lexer.consumed, '//foo');
-    assert.equal(lexer.queue.length, 1);
-    lexer.queue = [];
+    assert.equal(lexer.state.queue.length, 1);
+    lexer.state.queue = [];
 
     lexer.lookahead(1);
     assert.equal(lexer.consumed, '//foo/');
-    assert.equal(lexer.queue.length, 1);
-    lexer.queue = [];
+    assert.equal(lexer.state.queue.length, 1);
+    lexer.state.queue = [];
   });
 });

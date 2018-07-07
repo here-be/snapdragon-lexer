@@ -13,10 +13,10 @@ const tokenizer = new Tokenizer()
     const brace = { type: 'brace', nodes: [tok] };
 
     // push the "brace" node onto the nodes array
-    // of the "current" node on the stack
+    // of the last node on the stack
     stack[stack.length - 1].nodes.push(brace);
 
-    // next, we need to push the brace itself onto the stack
+    // next, we also need to push the brace itself onto the stack
     // so that nodes can be pushed onto brace.nodes until
     // we get to the closing (right) brace
     stack.push(brace);
