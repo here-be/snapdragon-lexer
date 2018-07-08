@@ -5,17 +5,17 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.current', function() {
-  beforeEach(function() {
+describe('api.current', () => {
+  beforeEach(() => {
     lexer = new Lexer();
     lexer.capture('dot', /^\./);
     lexer.capture('star', /^\*/);
     lexer.capture('slash', /^\//);
     lexer.capture('text', /^\w+/);
-    lexer.string = '//foo/bar.com';
+    lexer.state.string = '//foo/bar.com';
   });
 
-  it('should get the previous token', function() {
+  it('should get the previous token', () => {
     lexer.tokenize('//foo/bar.com');
     var text = lexer.current;
     assert(text);

@@ -5,12 +5,12 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.capture', function() {
-  beforeEach(function() {
+describe('api.capture', () => {
+  beforeEach(() => {
     lexer = new Lexer();
   });
 
-  it('should register a handler with type and regex only', function() {
+  it('should register a handler with type and regex only', () => {
     lexer.capture('text', /^\w+/);
     lexer.capture('star', /^\*/);
 
@@ -18,15 +18,15 @@ describe('api.capture', function() {
     assert.equal(typeof lexer.handlers.get('star'), 'function');
   });
 
-  it('should register a handler with type, regex and handler function', function() {
-    lexer.capture('text', /^\w+/, function() {});
-    lexer.capture('star', /^\*/, function() {});
+  it('should register a handler with type, regex and handler function', () => {
+    lexer.capture('text', /^\w+/, () => {});
+    lexer.capture('star', /^\*/, () => {});
 
     assert.equal(typeof lexer.handlers.get('text'), 'function');
     assert.equal(typeof lexer.handlers.get('star'), 'function');
   });
 
-  it('should expose the captured token to the given function', function() {
+  it('should expose the captured token to the given function', () => {
     let count = 0;
     lexer.capture('dot', /^\./, function(tok) {
       assert.equal(tok.type, 'dot');
@@ -40,7 +40,7 @@ describe('api.capture', function() {
     assert.equal(lexer.state.tokens.length, 3);
   });
 
-  it('should expose the match on the token', function() {
+  it('should expose the match on the token', () => {
     let count = 0;
     lexer.capture('dot', /^\.([a-z])\./, function(tok) {
       assert.equal(tok.match[0], '.a.');
@@ -54,7 +54,7 @@ describe('api.capture', function() {
     assert.equal(lexer.state.tokens.length, 1);
   });
 
-  it('should not call the function unless the regex matches', function() {
+  it('should not call the function unless the regex matches', () => {
     let count = 0;
     lexer.capture('text', /^\w/);
     lexer.capture('dot', /^\./, function(tok) {
@@ -67,7 +67,7 @@ describe('api.capture', function() {
     assert.equal(lexer.state.tokens.length, 5);
   });
 
-  it('should expose the lexer instance to handler', function() {
+  it('should expose the lexer instance to handler', () => {
     let count = 0;
     lexer.capture('dot', /^\./, function(tok) {
       assert(Array.isArray(this.state.tokens));
@@ -81,7 +81,7 @@ describe('api.capture', function() {
     assert.equal(lexer.state.tokens.length, 5);
   });
 
-  it('should expose the lexer instance to handler', function() {
+  it('should expose the lexer instance to handler', () => {
     let count = 0;
     lexer.capture('word', /^([a-y])/);
     lexer.capture('z', /^(z)/);

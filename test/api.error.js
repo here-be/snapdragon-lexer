@@ -5,19 +5,19 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.error', function() {
-  beforeEach(function() {
+describe('api.error', () => {
+  beforeEach(() => {
     lexer = new Lexer();
   });
 
-  it('should throw an error', function() {
-    assert.throws(function() {
+  it('should throw an error', () => {
+    assert.throws(() => {
       lexer.error(new Error('foo'));
     }, /foo/);
   });
 
-  it('should convert a string to an error', function() {
-    assert.throws(function() {
+  it('should convert a string to an error', () => {
+    assert.throws(() => {
       lexer.error('foo');
     }, /foo/);
   });
@@ -29,7 +29,7 @@ describe('api.error', function() {
 
   it('should not throw an error when listening for error', function(cb) {
     lexer.on('error', () => cb());
-    assert.doesNotThrow(function() {
+    assert.doesNotThrow(() => {
       lexer.error(new Error('foo'));
     });
   });

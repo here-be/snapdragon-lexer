@@ -7,9 +7,9 @@ const tokenizer = new Tokenizer()
   .capture('space', /^ +/)
   .capture('equal', /^=/)
   .capture('text', /^\w+/)
-  .capture('doublequote', /^"/)
-  .capture('singlequote', /^'/)
-  .capture('semicolon', /^;/)
+  .capture('quote_single', /^"/)
+  .capture('quote_double', /^'/)
+  .capture('semi', /^;/)
 
-const tokens = tokenizer.tokenize('var foo = "bar";');
+const tokens = tokenizer.lex('const foo = "bar";');
 console.log(tokens);

@@ -6,14 +6,14 @@ const define = require('define-property');
 const Lexer = require('..');
 let lexer;
 
-describe('api.scan', function() {
-  beforeEach(function() {
+describe('api.scan', () => {
+  beforeEach(() => {
     lexer = new Lexer();
-    lexer.string = '//foo/bar.com';
+    lexer.state.string = '//foo/bar.com';
     lexer.on('token', tok => define(tok, 'match', tok.match));
   });
 
-  it('should throw when regex matches an empty string', function() {
+  it('should throw when regex matches an empty string', () => {
     assert.throws(() => lexer.scan(/^(?=.)/, 'foo'), /empty/);
   });
 
@@ -26,7 +26,7 @@ describe('api.scan', function() {
     }
   });
 
-  it('should get the next token from the given regex', function() {
+  it('should get the next token from the given regex', () => {
     assert.deepEqual(lexer.scan(/^\//, 'slash'), { type: 'slash', value: '/' });
     assert.deepEqual(lexer.scan(/^\//, 'slash'), { type: 'slash', value: '/' });
     assert.deepEqual(lexer.scan(/^\w+/, 'text'), { type: 'text', value: 'foo' });
@@ -36,7 +36,7 @@ describe('api.scan', function() {
     assert.deepEqual(lexer.scan(/^\w+/, 'text'), { type: 'text', value: 'com' });
   });
 
-  it('should emit "scan"', function() {
+  it('should emit "scan"', () => {
     var count = 0;
     var expected = [
       { type: 'slash', value: '/' },

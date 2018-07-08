@@ -5,7 +5,7 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.skip', () => {
+describe('api.skipTo', () => {
   beforeEach(() => {
     lexer = new Lexer('//foo/bar.com')
       .capture('dot', /^\./)
@@ -14,13 +14,9 @@ describe('api.skip', () => {
       .capture('text', /^\w+/);
   });
 
-  it('should skip the specified number of tokens', () => {
-    lexer.skip(2);
-    assert.equal(lexer.peek().type, 'text');
-  });
-
-  it('should not add the next (peeked) token to the queue', () => {
-    lexer.skip(2);
-    assert.equal(lexer.state.queue.length, 1);
+  it('should skip to the specified type', () => {
+    const tokens = lexer.skipTo('dot');
+    assert.equal(tokens.pop().type, 'dot');
+    assert.equal(lexer.state.string, 'com');
   });
 });

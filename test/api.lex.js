@@ -6,20 +6,20 @@ const Token = require('../lib/token');
 const Lexer = require('..');
 let lexer;
 
-describe('lexer.lex', function() {
-  beforeEach(function() {
+describe('lexer.lex', () => {
+  beforeEach(() => {
     lexer = new Lexer();
     lexer.isLexer = true;
     lexer.capture('text', /^\w/);
   });
 
-  it('should lex the given string', function() {
+  it('should lex the given string', () => {
     const tokens = lexer.lex('abc');
     assert(Array.isArray(tokens));
     assert.equal(tokens.length, 3);
   });
 
-  it('should lex the string passed to the constructor', function() {
+  it('should lex the string passed to the constructor', () => {
     lexer = new Lexer('abcd');
     lexer.capture('text', /^\w/);
     assert.equal(lexer.state.input, 'abcd');
@@ -29,7 +29,7 @@ describe('lexer.lex', function() {
     assert(tokens.length, 4);
   });
 
-  it('should patch token with .loc', function() {
+  it('should patch token with .loc', () => {
     const tokens = lexer.lex('abc');
     assert(Array.isArray(tokens));
     assert(tokens.length);
@@ -60,9 +60,9 @@ describe('lexer.lex', function() {
     assert.equal(tokens[2].loc.end.column, 3);
   });
 
-  it('should create a new Token with the given loc', function() {
-    var loc = lexer.location();
-    var token = loc(new Token());
+  it('should create a new Token with the given loc', () => {
+    const loc = lexer.location();
+    const token = loc(new Token());
 
     assert(token.loc);
     assert(token.loc.start);
@@ -74,9 +74,21 @@ describe('lexer.lex', function() {
     assert.equal(token.loc.end.column, 0);
   });
 
-  it('should create a new Token with the given loc and type', function() {
-    var loc = lexer.location();
-    var token = loc(new Token('*'));
+  it('should set/get location range', () => {
+    lexer = new Lexer('foo/**/*.js');
+    lexer.capture('stars', /^\*+/);
+    lexer.capture('slash', /^\//);
+    lexer.capture('dot', /^\./);
+    lexer.capture('text', /^\w+/);
+    lexer.lex();
+
+    const stars = lexer.state.tokens.find(tok => tok.type === 'stars');
+    assert.deepEqual(stars.loc.range, [4, 6]);
+  });
+
+  it('should create a new Token with the given loc and type', () => {
+    const loc = lexer.location();
+    const token = loc(new Token('*'));
 
     assert.equal(token.type, '*');
 
@@ -90,9 +102,9 @@ describe('lexer.lex', function() {
     assert.equal(token.loc.end.column, 0);
   });
 
-  it('should create a new Token with the given loc, type, and val', function() {
-    var loc = lexer.location();
-    var token = loc(new Token('star', '*'));
+  it('should create a new Token with the given loc, type, and val', () => {
+    const loc = lexer.location();
+    const token = loc(new Token('star', '*'));
 
     assert.equal(token.type, 'star');
     assert.equal(token.value, '*');
@@ -107,9 +119,9 @@ describe('lexer.lex', function() {
     assert.equal(token.loc.end.column, 0);
   });
 
-  it('should create a new Token with the given loc and object', function() {
-    var loc = lexer.location();
-    var token = loc(new Token('star', '*'));
+  it('should create a new Token with the given loc and object', () => {
+    const loc = lexer.location();
+    const token = loc(new Token('star', '*'));
 
     assert.equal(token.value, '*');
     assert.equal(token.type, 'star');
@@ -124,7 +136,7 @@ describe('lexer.lex', function() {
     assert.equal(token.loc.end.column, 0);
   });
 
-  it('should patch line number onto token.loc', function() {
+  it('should patch line number onto token.loc', () => {
     lexer.capture('slash', /^\//);
     lexer.capture('star', /^\*/);
     lexer.capture('text', /^\w+/);

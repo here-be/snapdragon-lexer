@@ -5,21 +5,21 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.last', function() {
-  beforeEach(function() {
+describe('api.prev', () => {
+  beforeEach(() => {
     lexer = new Lexer();
     lexer.capture('dot', /^\./);
     lexer.capture('star', /^\*/);
     lexer.capture('slash', /^\//);
     lexer.capture('text', /^\w+/);
-    lexer.string = '//foo/bar.com';
+    lexer.state.string = '//foo/bar.com';
   });
 
-  it('should get the last token on the tokens array', function() {
+  it('should get the prev token on the tokens array', () => {
     lexer.tokenize('//foo/bar.com');
-    var text = lexer.last();
-    assert(text);
-    assert.equal(text.type, 'text');
-    assert.equal(text.value, 'com');
+    const token = lexer.prev();
+    assert(token);
+    assert.equal(token.type, 'text');
+    assert.equal(token.value, 'com');
   });
 });

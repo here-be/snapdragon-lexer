@@ -5,21 +5,21 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('lexer.handlers', function() {
-  beforeEach(function() {
+describe('lexer.handlers', () => {
+  beforeEach(() => {
     lexer = new Lexer();
   });
 
-  describe('.set', function() {
-    it('should register handlers on the lexer.handlers object', function() {
-      lexer.set('word', function() {});
-      lexer.set('star', function() {});
+  describe('.set', () => {
+    it('should register handlers on the lexer.handlers object', () => {
+      lexer.set('word', () => {});
+      lexer.set('star', () => {});
 
       assert.equal(typeof lexer.handlers.get('word'), 'function');
       assert.equal(typeof lexer.handlers.get('star'), 'function');
     });
 
-    it('should expose the lexer instance to registered handler', function() {
+    it('should expose the lexer instance to registered handler', () => {
       var count = 0;
 
       lexer.set('word', function() {
@@ -32,19 +32,30 @@ describe('lexer.handlers', function() {
     });
   });
 
-  describe('.get', function() {
-    it('should get registered handlers from lexer.handlers', function() {
-      lexer.set('word', function() {});
-      lexer.set('star', function() {});
+  describe('.get', () => {
+    it('should get registered handlers from lexer.handlers', () => {
+      lexer.set('word', () => {});
+      lexer.set('star', () => {});
 
       assert.equal(typeof lexer.get('word'), 'function');
       assert.equal(typeof lexer.get('star'), 'function');
     });
 
-    it('should throw an error when getting an unregistered handler', function() {
-      assert.throws(function() {
+    it('should throw an error when getting an unregistered handler', () => {
+      assert.throws(() => {
         lexer.get('flfofofofofofo');
       });
+    });
+  });
+
+  describe('.has', () => {
+    it('should be true when a handler is registered', () => {
+      lexer.set('word', () => {});
+      assert(lexer.has('word'));
+    });
+
+    it('should be false when a handler is not registered', () => {
+      assert(!lexer.has('slsllslsls'));
     });
   });
 });

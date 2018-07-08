@@ -5,17 +5,17 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.eos', () => {
+describe('api.bos', () => {
   beforeEach(() => {
     lexer = new Lexer();
   });
 
   it('should be true when lexer.state.string is empty', () => {
-    assert(lexer.eos());
+    assert(lexer.bos());
   });
 
   it('should be false when lexer.state.string is not empty', () => {
     lexer.state.string = 'foo';
-    assert(!lexer.eos());
+    assert(lexer.bos());
   });
 });

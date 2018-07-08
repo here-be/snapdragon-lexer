@@ -5,21 +5,21 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.lookbehind', function() {
-  beforeEach(function() {
+describe('api.lookbehind', () => {
+  beforeEach(() => {
     lexer = new Lexer();
     lexer.capture('dot', /^\./);
     lexer.capture('star', /^\*/);
     lexer.capture('slash', /^\//);
     lexer.capture('text', /^\w+/);
-    lexer.string = '//foo/bar.com';
+    lexer.state.string = '//foo/bar.com';
   });
 
-  it('should throw an error when the first argument is not a number', function() {
+  it('should throw an error when the first argument is not a number', () => {
     assert.throws(() => lexer.lookbehind(), /expected/);
   });
 
-  it('should look behind "n" tokens', function() {
+  it('should look behind "n" tokens', () => {
     lexer.tokenize('//foo/bar.com');
     var text = lexer.lookbehind(1);
     assert(text);

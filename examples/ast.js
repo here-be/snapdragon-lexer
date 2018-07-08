@@ -38,13 +38,13 @@ const tokenizer = new Tokenizer()
   .capture('slash', /^\//)
   .capture('star', /^\*/)
   .capture('dot', /^\./)
-  .on('lex', tok => {
+  .on('token', token => {
     // push all non-brace tokens onto the nodes array of
     // the "current" node on the stack (since we already
     // handle brace nodes above, to ensure they are pushed
     // on in the correct order)
-    if (!/^brace/.test(tok.type)) {
-      stack[stack.length - 1].nodes.push(tok);
+    if (token.type.slice(0, 5) !== 'brace') {
+      stack[stack.length - 1].nodes.push(token);
     }
   });
 

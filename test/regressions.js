@@ -5,18 +5,18 @@ const assert = require('assert');
 const Lexer = require('..');
 let lexer;
 
-describe('api.regressions', function() {
-  beforeEach(function() {
+describe('api.regressions', () => {
+  beforeEach(() => {
     lexer = new Lexer();
   });
 
-  describe('constructor:', function() {
-    it('should return an instance of Lexer:', function() {
+  describe('constructor:', () => {
+    it('should return an instance of Lexer:', () => {
       assert(lexer instanceof Lexer);
     });
   });
 
-  describe('prototype methods:', function() {
+  describe('prototype methods:', () => {
     var methods = [
       'advance',
       'get',
@@ -33,7 +33,7 @@ describe('api.regressions', function() {
     ];
 
     methods.forEach(function(method) {
-      it('should expose the `' + method + '` method', function() {
+      it('should expose the `' + method + '` method', () => {
         assert.equal(typeof lexer[method], 'function', method);
       });
     });
