@@ -30,8 +30,8 @@ class Lexer extends Events {
     }
 
     this.options = { ...options };
-    this.types = new Set();
     this.handlers = new Map();
+    this.types = new Set();
     this.state = new State(input);
 
     if (options.handlers) {
@@ -81,6 +81,7 @@ class Lexer extends Events {
    */
 
   set(type, handler = tok => tok) {
+    this.types.add(type);
     const lexer = this;
     // can't do fat arrow here, we need to ensure that the handler
     // context is always correct whether handlers are called directly
@@ -97,10 +98,6 @@ class Lexer extends Events {
       }
       return Token.isToken(tok) ? loc(tok) : tok;
     });
-
-    if (!this.types.has(type)) {
-      this.types.add(type);
-    }
     return this;
   }
 
@@ -271,6 +268,7 @@ class Lexer extends Events {
       throw new SyntaxError('regex should not match an empty string');
     }
 
+    this.emit('match', match);
     define(match, 'consumed', consumed);
     this.consume(match[0].length, match[0]);
     return match;
@@ -587,7 +585,7 @@ class Lexer extends Events {
    * @api public
    */
 
-  skipWhile(fn) {
+  skipWhile(fn = !this.eos()) {
     const skipped = [];
     while (fn.call(this, this.peek())) skipped.push(this.next());
     return skipped;
@@ -606,7 +604,7 @@ class Lexer extends Events {
    */
 
   skipTo(type) {
-    return this.skipWhile(tok => tok.type !== type).concat(this.next());
+    return this.skipWhile(tok => tok && tok.type !== type).concat(this.next());
   }
 
   /**
@@ -734,7 +732,7 @@ class Lexer extends Events {
 
   error(err) {
     if (typeof err === 'string') err = new Error(err);
-    if (this.hasListeners('error')) {
+    if (this.listenerCount('error') > 0) {
       this.emit('error', err);
     } else {
       throw err;
@@ -757,19 +755,6 @@ class Lexer extends Events {
     if (this.state.string) {
       throw new Error(`unmatched input: "${this.state.string.slice(0, 10)}"`);
     }
-  }
-
-  /**
-   * Returns true if listeners are registered for even `name`.
-   *
-   * @name .hasListeners
-   * @param {string} `name`
-   * @return {boolean}
-   * @api public
-   */
-
-  hasListeners(name) {
-    return this.listenerCount(name) > 0;
   }
 
   /**

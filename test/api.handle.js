@@ -25,7 +25,6 @@ describe('api.handle', () => {
 
   it('should return a string when options.mode is "character"', () => {
     lexer = new Lexer('abcd', { mode: 'character' });
-    lexer.capture('text', /^\w/);
     lexer.lex();
     assert.deepEqual(lexer.state.tokens, ['a', 'b', 'c', 'd']);
   });
